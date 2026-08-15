@@ -41,290 +41,227 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
   const overdueIssues = state.transactions.complianceIssues.filter(i => i.status === 'Overdue');
 
   return (
-    <div style={{ padding: '32px 0 60px' }}>
+    <div style={{ padding: '24px 0 60px' }}>
       <div className="cb-container">
         
         {/* Dark Hero Band */}
-        <div className="cb-card-dark-highlight" style={{ marginBottom: '32px' }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 0.8fr',
-            gap: '32px',
-            alignItems: 'center'
-          }}>
+        <div className="cb-card-dark-highlight" style={{ marginBottom: '28px' }}>
+          <div className="cb-hero-grid">
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
                 <span className="cb-badge cb-badge-primary" style={{ backgroundColor: 'rgba(0, 82, 255, 0.2)', color: '#60a5fa' }}>
                   INSTITUTIONAL ESG SCORECARD
                 </span>
-                <span style={{ fontSize: '13px', color: 'var(--cb-on-dark-soft)' }} className="cb-mono">
+                <span style={{ fontSize: '12px', color: 'var(--cb-on-dark-soft)' }} className="cb-mono">
                   LIVE RECOMPUTATION ACTIVE
                 </span>
               </div>
 
-              <h1 className="cb-display-mega" style={{ color: '#ffffff', marginBottom: '16px' }}>
+              <h1 className="cb-display-mega" style={{ color: '#ffffff', marginBottom: '14px' }}>
                 Net-Zero & ESG Intelligence.
               </h1>
 
-              <p className="cb-body-md" style={{ color: 'var(--cb-on-dark-body)', fontSize: '16px', maxWidth: '540px', marginBottom: '28px' }}>
+              <p className="cb-body-md" style={{ color: 'var(--cb-on-dark-body)', fontSize: '15px', maxWidth: '540px', marginBottom: '24px' }}>
                 Integrated enterprise ESG accounting connecting real-time operational ERP data, employee sustainability challenges, and board-level governance audits.
               </p>
 
-              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <div className="cb-hero-cta-group">
                 <button
                   onClick={openERPSimulator}
                   className="cb-btn cb-btn-primary cb-btn-pill-cta"
                 >
+                  <Zap size={18} />
                   <span>Record ERP Emissions</span>
-                  <ArrowRight size={18} />
+                  <ArrowRight size={16} />
                 </button>
-
                 <button
                   onClick={() => onNavigate('reports')}
-                  className="cb-btn cb-btn-dark-outline"
+                  className="cb-btn cb-btn-dark-outline cb-btn-pill-cta"
                 >
                   <span>Export ESG Summary Report</span>
                 </button>
               </div>
             </div>
 
-            <div style={{
-              backgroundColor: 'var(--cb-surface-dark-elevated)',
-              border: '1px solid var(--cb-surface-dark-border)',
-              borderRadius: 'var(--cb-radius-xl)',
-              padding: '28px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            {/* Scorecard Hero Display */}
+            <div className="cb-hero-score-box">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <div>
-                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--cb-on-dark-soft)', fontWeight: 600 }}>
-                    Overall Corporate ESG Score
+                  <div className="cb-caption" style={{ color: 'var(--cb-on-dark-soft)' }}>
+                    OVERALL COMPOSITE
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
-                    <span className="cb-mono" style={{ fontSize: '48px', fontWeight: 700, color: '#ffffff', lineHeight: 1 }}>
-                      {overallESGScore.total}
-                    </span>
-                    <span style={{ fontSize: '16px', color: 'var(--cb-on-dark-soft)', fontWeight: 500 }}>/ 100</span>
-                    <span className="cb-badge cb-badge-up" style={{ marginLeft: '6px' }}>
-                      <TrendingUp size={12} />
-                      <span>Top 8% Tier</span>
-                    </span>
+                  <div className="cb-caption" style={{ color: 'var(--cb-on-dark-soft)' }}>
+                    SCORE (WEIGHTED)
                   </div>
                 </div>
-
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: 'var(--cb-radius-full)',
-                  backgroundColor: 'rgba(0, 82, 255, 0.15)',
-                  border: '1px solid rgba(0, 82, 255, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--cb-primary)'
-                }}>
-                  <Zap size={22} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--cb-semantic-up)', fontSize: '13px', fontWeight: 600 }}>
+                  <TrendingUp size={15} />
+                  <span>+4.2% QoQ</span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '20px' }}>
+                <span className="cb-mono" style={{ fontSize: '56px', fontWeight: 700, color: '#ffffff', lineHeight: 1 }}>
+                  {overallESGScore.total}
+                </span>
+                <span style={{ fontSize: '20px', color: 'var(--cb-on-dark-soft)' }}>/ 100</span>
+              </div>
+
+              {/* 3 Pillar Progress Tracks */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Leaf size={14} color="var(--cb-semantic-up)" />
-                      Environmental ({state.config.weights.env}%)
+                      <Leaf size={13} color="var(--cb-semantic-up)" />
+                      <span>Environmental ({state.config.weights.env}%)</span>
                     </span>
-                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>
-                      {overallESGScore.environmental} / 100
-                    </span>
+                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.environmental}/100</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', backgroundColor: '#262a33', borderRadius: 'var(--cb-radius-pill)', overflow: 'hidden' }}>
-                    <div style={{ width: overallESGScore.environmental + '%', height: '100%', backgroundColor: 'var(--cb-semantic-up)', borderRadius: 'var(--cb-radius-pill)' }} />
+                  <div className="cb-progress-track" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                    <div className="cb-progress-fill" style={{ width: overallESGScore.environmental + '%', backgroundColor: 'var(--cb-semantic-up)' }} />
                   </div>
                 </div>
 
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Users size={14} color="#60a5fa" />
-                      Social ({state.config.weights.soc}%)
+                      <Users size={13} color="var(--cb-primary)" />
+                      <span>Social ({state.config.weights.soc}%)</span>
                     </span>
-                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>
-                      {overallESGScore.social} / 100
-                    </span>
+                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.social}/100</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', backgroundColor: '#262a33', borderRadius: 'var(--cb-radius-pill)', overflow: 'hidden' }}>
-                    <div style={{ width: overallESGScore.social + '%', height: '100%', backgroundColor: 'var(--cb-primary)', borderRadius: 'var(--cb-radius-pill)' }} />
+                  <div className="cb-progress-track" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                    <div className="cb-progress-fill" style={{ width: overallESGScore.social + '%', backgroundColor: 'var(--cb-primary)' }} />
                   </div>
                 </div>
 
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <ShieldCheck size={14} color="#f59e0b" />
-                      Governance ({state.config.weights.gov}%)
+                      <ShieldCheck size={13} color="#f59e0b" />
+                      <span>Governance ({state.config.weights.gov}%)</span>
                     </span>
-                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>
-                      {overallESGScore.governance} / 100
-                    </span>
+                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.governance}/100</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', backgroundColor: '#262a33', borderRadius: 'var(--cb-radius-pill)', overflow: 'hidden' }}>
-                    <div style={{ width: overallESGScore.governance + '%', height: '100%', backgroundColor: '#f59e0b', borderRadius: 'var(--cb-radius-pill)' }} />
+                  <div className="cb-progress-track" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                    <div className="cb-progress-fill" style={{ width: overallESGScore.governance + '%', backgroundColor: '#f59e0b' }} />
                   </div>
                 </div>
               </div>
 
               <div style={{
-                marginTop: '20px',
-                paddingTop: '16px',
-                borderTop: '1px solid var(--cb-surface-dark-border)',
+                paddingTop: '14px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                 display: 'flex',
                 justifyContent: 'space-between',
-                fontSize: '12px',
+                alignItems: 'center',
+                fontSize: '11px',
                 color: 'var(--cb-on-dark-soft)'
               }}>
-                <span>Weights: {state.config.weights.env}% E + {state.config.weights.soc}% S + {state.config.weights.gov}% G</span>
-                <span 
-                  onClick={() => onNavigate('settings')}
-                  style={{ color: 'var(--cb-primary)', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  Configure
+                <span>Weighting Formula:</span>
+                <span className="cb-mono" style={{ color: '#ffffff', fontWeight: 600 }}>
+                  {state.config.weights.env}% E + {state.config.weights.soc}% S + {state.config.weights.gov}% G
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 4 KPI Cards */}
-        <div className="cb-grid-4" style={{ marginBottom: '32px' }}>
+        {/* 4-Up High-Impact Metrics Grid */}
+        <div className="cb-grid-4" style={{ marginBottom: '28px' }}>
+          
           <div className="cb-card" onClick={() => onNavigate('environmental')} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>OPERATIONAL CARBON</span>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--cb-surface-strong)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--cb-primary)'
-              }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--cb-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cb-primary)' }}>
                 <Flame size={16} />
               </div>
             </div>
-            <div className="cb-mono" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--cb-ink)', lineHeight: 1.1 }}>
-              {totalCarbonTonnes} <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--cb-muted)' }}>tCO2e</span>
+            <div className="cb-mono" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--cb-ink)', lineHeight: 1.1 }}>
+              {totalCarbonTonnes}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-              <span className="cb-badge cb-badge-up" style={{ fontSize: '11px', padding: '2px 8px' }}>-4.2%</span>
-              <span style={{ fontSize: '12px', color: 'var(--cb-muted)' }}>vs prior quarter</span>
+            <div style={{ fontSize: '13px', color: 'var(--cb-muted)', marginTop: '4px' }}>
+              tCO2e GHG Total Emitted
+            </div>
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--cb-primary)', fontWeight: 600 }}>
+              <span>View Carbon Ledger</span>
+              <ArrowRight size={12} />
             </div>
           </div>
 
           <div className="cb-card" onClick={() => onNavigate('social')} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>SOCIAL & CSR</span>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--cb-surface-strong)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--cb-primary)'
-              }}>
+              <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>CSR INITIATIVES</span>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--cb-semantic-up-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cb-semantic-up)' }}>
                 <Users size={16} />
               </div>
             </div>
-            <div className="cb-mono" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--cb-ink)', lineHeight: 1.1 }}>
-              {activeCsrCount} <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--cb-muted)' }}>Active</span>
+            <div className="cb-mono" style={{ fontSize: '32px', fontWeight: 700, color: 'var(--cb-ink)', lineHeight: 1.1 }}>
+              {activeCsrCount}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-              {pendingApprovalsCount > 0 ? (
-                <span className="cb-badge cb-badge-warning" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                  {pendingApprovalsCount} Submissions Pending
-                </span>
-              ) : (
-                <span className="cb-badge cb-badge-up" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                  All Approved
-                </span>
-              )}
+            <div style={{ fontSize: '13px', color: 'var(--cb-muted)', marginTop: '4px' }}>
+              Active Drives ({pendingApprovalsCount} in review)
+            </div>
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--cb-semantic-up)', fontWeight: 600 }}>
+              <span>Review Evidence</span>
+              <ArrowRight size={12} />
             </div>
           </div>
 
           <div className="cb-card" onClick={() => onNavigate('governance')} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>GOVERNANCE AUDITS</span>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--cb-surface-strong)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: overdueIssues.length > 0 ? 'var(--cb-semantic-down)' : 'var(--cb-semantic-up)'
-              }}>
+              <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>AUDITS & COMPLIANCE</span>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: overdueIssues.length > 0 ? 'var(--cb-semantic-down-bg)' : 'var(--cb-primary-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: overdueIssues.length > 0 ? 'var(--cb-semantic-down)' : 'var(--cb-primary)' }}>
                 <ShieldCheck size={16} />
               </div>
             </div>
-            <div className="cb-mono" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--cb-ink)', lineHeight: 1.1 }}>
-              {state.transactions.audits.length} <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--cb-muted)' }}>Audits</span>
+            <div className="cb-mono" style={{ fontSize: '32px', fontWeight: 700, color: overdueIssues.length > 0 ? 'var(--cb-semantic-down)' : 'var(--cb-ink)', lineHeight: 1.1 }}>
+              {state.transactions.audits.length}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-              {overdueIssues.length > 0 ? (
-                <span className="cb-badge cb-badge-down" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                  🚨 {overdueIssues.length} Overdue Issue
-                </span>
-              ) : (
-                <span className="cb-badge cb-badge-up" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                  100% On-Schedule
-                </span>
-              )}
+            <div style={{ fontSize: '13px', color: overdueIssues.length > 0 ? 'var(--cb-semantic-down)' : 'var(--cb-muted)', marginTop: '4px' }}>
+              {overdueIssues.length > 0 ? overdueIssues.length + ' Overdue Issues!' : 'Audits Scheduled'}
+            </div>
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--cb-primary)', fontWeight: 600 }}>
+              <span>View Policy Register</span>
+              <ArrowRight size={12} />
             </div>
           </div>
 
           <div className="cb-card" onClick={() => onNavigate('gamification')} style={{ cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>GAMIFICATION</span>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--cb-surface-strong)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--cb-primary)'
-              }}>
+              <span className="cb-caption" style={{ color: 'var(--cb-muted)' }}>CHALLENGES & XP</span>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--cb-accent-yellow-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b45309' }}>
                 <Award size={16} />
               </div>
             </div>
-            <div className="cb-mono" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--cb-ink)', lineHeight: 1.1 }}>
-              {state.master.userBadges.length} <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--cb-muted)' }}>Badges</span>
+            <div className="cb-mono" style={{ fontSize: '32px', fontWeight: 700, color: '#b45309', lineHeight: 1.1 }}>
+              {state.transactions.challenges.length}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-              <span className="cb-badge cb-badge-neutral" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                {state.transactions.challenges.filter(c => c.status === 'Active').length} Active Challenges
-              </span>
+            <div style={{ fontSize: '13px', color: 'var(--cb-muted)', marginTop: '4px' }}>
+              Sustainability Sprints Active
+            </div>
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#b45309', fontWeight: 600 }}>
+              <span>Enter Reward Store</span>
+              <ArrowRight size={12} />
             </div>
           </div>
+
         </div>
 
-        {/* 2-Column Section */}
-        <div className="cb-grid-2" style={{ marginBottom: '32px' }}>
+        {/* 2-Column: Department Score Leaderboard + Carbon Scope Breakdown */}
+        <div className="cb-grid-2" style={{ marginBottom: '28px' }}>
+          
           <div className="cb-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <h3 className="cb-title-lg" style={{ color: 'var(--cb-ink)' }}>Department ESG Rankings</h3>
-                <p className="cb-body-sm">Dynamic composite scores and organizational rankings</p>
+                <p className="cb-body-sm">Dynamic multi-pillar performance rating</p>
               </div>
               <button
-                onClick={() => onNavigate('reports')}
+                onClick={() => onNavigate('settings')}
                 className="cb-btn cb-btn-outline cb-btn-sm"
               >
-                Full Analysis
+                <span>Adjust Weights</span>
               </button>
             </div>
 
@@ -337,7 +274,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                     <th>Env</th>
                     <th>Soc</th>
                     <th>Gov</th>
-                    <th>Total Score</th>
+                    <th>Score</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -372,7 +309,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
           </div>
 
           <div className="cb-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <h3 className="cb-title-lg" style={{ color: 'var(--cb-ink)' }}>Carbon Accounting by Scope</h3>
                 <p className="cb-body-sm">GHG Protocol certified scope distribution</p>
@@ -382,14 +319,14 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '12px' }}>
-              <div style={{ padding: '16px', borderRadius: 'var(--cb-radius-md)', backgroundColor: 'var(--cb-surface-soft)', border: '1px solid var(--cb-hairline-soft)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '8px' }}>
+              <div style={{ padding: '14px', borderRadius: 'var(--cb-radius-md)', backgroundColor: 'var(--cb-surface-soft)', border: '1px solid var(--cb-hairline-soft)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--cb-ink)' }}>Scope 1: Direct Operations</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cb-ink)' }}>Scope 1: Direct Operations</span>
                   </div>
-                  <span className="cb-mono" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cb-ink)' }}>
+                  <span className="cb-mono" style={{ fontSize: '13px', fontWeight: 700, color: 'var(--cb-ink)' }}>
                     {scope1Emissions.toLocaleString()} kg ({scope1Pct}%)
                   </span>
                 </div>
@@ -398,13 +335,13 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                 </div>
               </div>
 
-              <div style={{ padding: '16px', borderRadius: 'var(--cb-radius-md)', backgroundColor: 'var(--cb-surface-soft)', border: '1px solid var(--cb-hairline-soft)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ padding: '14px', borderRadius: 'var(--cb-radius-md)', backgroundColor: 'var(--cb-surface-soft)', border: '1px solid var(--cb-hairline-soft)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--cb-ink)' }}>Scope 2: Purchased Electricity</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cb-ink)' }}>Scope 2: Purchased Electricity</span>
                   </div>
-                  <span className="cb-mono" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cb-ink)' }}>
+                  <span className="cb-mono" style={{ fontSize: '13px', fontWeight: 700, color: 'var(--cb-ink)' }}>
                     {scope2Emissions.toLocaleString()} kg ({scope2Pct}%)
                   </span>
                 </div>
@@ -413,13 +350,13 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                 </div>
               </div>
 
-              <div style={{ padding: '16px', borderRadius: 'var(--cb-radius-md)', backgroundColor: 'var(--cb-surface-soft)', border: '1px solid var(--cb-hairline-soft)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ padding: '14px', borderRadius: 'var(--cb-radius-md)', backgroundColor: 'var(--cb-surface-soft)', border: '1px solid var(--cb-hairline-soft)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--cb-primary)' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--cb-ink)' }}>Scope 3: Value Chain & Travel</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cb-ink)' }}>Scope 3: Value Chain & Travel</span>
                   </div>
-                  <span className="cb-mono" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--cb-ink)' }}>
+                  <span className="cb-mono" style={{ fontSize: '13px', fontWeight: 700, color: 'var(--cb-ink)' }}>
                     {scope3Emissions.toLocaleString()} kg ({scope3Pct}%)
                   </span>
                 </div>
@@ -433,7 +370,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
 
         {/* Goals Grid */}
         <div className="cb-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
               <h3 className="cb-title-lg" style={{ color: 'var(--cb-ink)' }}>Corporate Sustainability Targets</h3>
               <p className="cb-body-sm">Science-based net-zero reduction roadmaps</p>
@@ -454,7 +391,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                 <div
                   key={goal.id}
                   style={{
-                    padding: '20px',
+                    padding: '16px',
                     borderRadius: 'var(--cb-radius-lg)',
                     border: '1px solid var(--cb-hairline)',
                     backgroundColor: 'var(--cb-canvas)'

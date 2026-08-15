@@ -649,3 +649,46 @@ body {
     width: 100%;
   }
 }
+
+/* HERO GRID & SCORECARD RESPONSIVE */
+.cb-hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+}
+
+.cb-hero-cta-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cb-hero-score-box {
+  background-color: var(--cb-surface-dark-card);
+  border: 1px solid var(--cb-surface-dark-border);
+  border-radius: var(--cb-radius-xl);
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .cb-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .cb-hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  .cb-hero-cta-group .cb-btn {
+    width: 100%;
+  }
+  .cb-hero-score-box {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
