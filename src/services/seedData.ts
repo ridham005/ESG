@@ -35,7 +35,7 @@ export const initialSeedData: EcoSphereState = {
     {
       id: 'usr-3',
       name: 'Samantha Hayes',
-      email: 'maya.patel@ecosphere.corp',
+      email: 'samantha.hayes@ecosphere.corp',
       role: 'EMPLOYEE',
       departmentId: 'dept-2',
       points: 650,
