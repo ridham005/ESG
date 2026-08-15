@@ -18,9 +18,9 @@ interface DashboardProps {
 
 export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openERPSimulator }) => {
   const { state, overallESGScore, departmentScores } = useEcoSphere();
-  const rawTotalW = (normEnv + normSoc + normGov) || 100;
-  const normEnv = Math.round((normEnv / rawTotalW) * 100);
-  const normSoc = Math.round((normSoc / rawTotalW) * 100);
+  const rawTotalW = (state.config.weights.env + state.config.weights.soc + state.config.weights.gov) || 100;
+  const normEnv = Math.round((state.config.weights.env / rawTotalW) * 100);
+  const normSoc = Math.round((state.config.weights.soc / rawTotalW) * 100);
   const normGov = 100 - normEnv - normSoc;
 
   const totalCarbonKg = state.transactions.carbonTransactions.reduce((acc, t) => acc + t.calculatedEmissions, 0);

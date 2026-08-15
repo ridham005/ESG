@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { EcoSphereProvider } from './context/EcoSphereContext';
 import { Header } from './components/Header';
 import { NotificationDrawer } from './components/NotificationDrawer';
@@ -11,7 +11,109 @@ import { GovernanceModule } from './components/Governance/GovernanceModule';
 import { GamificationModule } from './components/Gamification/GamificationModule';
 import { ReportsModule } from './components/Reports/ReportsModule';
 import { SettingsModule } from './components/Settings/SettingsModule';
-import { Globe, ShieldCheck } from 'lucide-react';
+import { Globe, ShieldCheck, RefreshCw, AlertTriangle } from 'lucide-react';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('[EcoSphere Global Guard] Caught UI Exception:', error, errorInfo);
+  }
+
+  handleReset = () => {
+    try {
+      localStorage.clear();
+    } catch(e) {}
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#0a0b0d',
+          color: '#ffffff',
+          padding: '24px',
+          fontFamily: 'Inter, sans-serif'
+        }}>
+          <div style={{
+            maxWidth: '460px',
+            width: '100%',
+            backgroundColor: '#16181c',
+            border: '1px solid #282c34',
+            borderRadius: '24px',
+            padding: '32px',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(0, 82, 255, 0.2)',
+              color: '#0052ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px'
+            }}>
+              <Globe size={26} />
+            </div>
+
+            <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>
+              EcoSphere Recovery Guard
+            </h2>
+            <p style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '24px', lineHeight: 1.5 }}>
+              The application encountered a transient state exception and safely prevented unauthorized data access.
+            </p>
+
+            <button
+              onClick={this.handleReset}
+              style={{
+                width: '100%',
+                height: '46px',
+                borderRadius: '9999px',
+                backgroundColor: '#0052ff',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <RefreshCw size={16} />
+              <span>Reload EcoSphere Platform</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -124,8 +226,10 @@ export const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <EcoSphereProvider>
-      <AppContent />
-    </EcoSphereProvider>
+    <ErrorBoundary>
+      <EcoSphereProvider>
+        <AppContent />
+      </EcoSphereProvider>
+    </ErrorBoundary>
   );
 }
