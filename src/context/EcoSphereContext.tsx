@@ -113,13 +113,15 @@ interface EcoSphereContextType {
   resetToSeedData: () => void;
 }
 
-const STORAGE_KEY = 'ecosphere_esg_platform_state_v1';
+const STORAGE_KEY = 'ecosphere_esg_platform_state_v2';
 
 const EcoSphereContext = createContext<EcoSphereContextType | undefined>(undefined);
 
 export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<EcoSphereState>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    // Clear any old v1 cache with old names
+  try { localStorage.removeItem('ecosphere_esg_platform_state_v1'); } catch(e) {}
+  const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
