@@ -129,7 +129,7 @@ interface EcoSphereContextType {
   peerDeviceCount: number;
 }
 
-const STORAGE_KEY = 'ecosphere_esg_platform_state_v3';
+const STORAGE_KEY = 'ecosphere_esg_platform_state_v4';
 const AUTH_KEY = 'ecosphere_auth_session_v3';
 
 // Passwords for demo roles (simulated enterprise backend auth)
@@ -157,6 +157,7 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     try {
       localStorage.removeItem('ecosphere_esg_platform_state_v1');
       localStorage.removeItem('ecosphere_esg_platform_state_v2');
+      localStorage.removeItem('ecosphere_esg_platform_state_v3');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         let str = JSON.stringify(JSON.parse(saved)).replaceAll('Maya Patel', 'Samantha Hayes');
