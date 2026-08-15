@@ -51,19 +51,12 @@ export const AppContent: React.FC = () => {
       <footer style={{
         borderTop: '1px solid var(--cb-hairline)',
         backgroundColor: 'var(--cb-surface-soft)',
-        padding: '36px 0 24px',
+        padding: '32px 0 24px',
         marginTop: 'auto'
       }}>
         <div className="cb-container">
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '16px',
-            marginBottom: '20px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="cb-footer-top">
+            <div className="cb-footer-brand">
               <div style={{
                 width: '26px',
                 height: '26px',
@@ -72,37 +65,30 @@ export const AppContent: React.FC = () => {
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}>
                 <Globe size={15} />
               </div>
               <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--cb-ink)' }}>EcoSphere</span>
-              <span style={{ fontSize: '12px', color: 'var(--cb-muted)', marginLeft: '6px' }}>
-                • Enterprise ESG Management Platform
+              <span style={{ fontSize: '12px', color: 'var(--cb-muted)', marginLeft: '4px' }}>
+                • Institutional ESG Platform
               </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--cb-body)' }}>
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('environmental')}>Carbon Accounting</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('social')}>Social & DEI</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('governance')}>Audit Governance</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('gamification')}>Gamification</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('reports')}>Reports</span>
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('settings')}>Settings</span>
+            <div className="cb-footer-links">
+              <span onClick={() => setActiveTab('environmental')}>Carbon Accounting</span>
+              <span onClick={() => setActiveTab('social')}>Social & DEI</span>
+              <span onClick={() => setActiveTab('governance')}>Audit Governance</span>
+              <span onClick={() => setActiveTab('gamification')}>Gamification</span>
+              <span onClick={() => setActiveTab('reports')}>Reports</span>
+              <span onClick={() => setActiveTab('settings')}>Settings</span>
             </div>
           </div>
 
-          <div style={{
-            borderTop: '1px solid var(--cb-hairline-soft)',
-            paddingTop: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '12px',
-            color: 'var(--cb-muted)'
-          }}>
+          <div className="cb-footer-bottom">
             <div>
-              © 2026 EcoSphere Inc. Adheres strictly to Coinbase Design Guidelines (#0052ff, pill buttons, 24px cards).
+              © 2026 EcoSphere Inc. Adheres to Coinbase Design System (#0052ff, pill CTAs, 24px cards).
             </div>
             <div className="cb-mono" style={{ fontSize: '11px' }}>
               GHG PROTOCOL • ISO 14001 • SBTi ALIGNED

@@ -14,7 +14,8 @@ import {
   Flame, 
   FileText,
   Menu,
-  X
+  X,
+  UserCheck
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -58,11 +59,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="cb-header-left">
             <div 
               onClick={() => handleNavClick('dashboard')}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
             >
               <div style={{
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 borderRadius: 'var(--cb-radius-full)',
                 backgroundColor: 'var(--cb-primary)',
                 display: 'flex',
@@ -71,26 +72,26 @@ export const Header: React.FC<HeaderProps> = ({
                 color: '#ffffff',
                 flexShrink: 0
               }}>
-                <Globe size={20} />
+                <Globe size={18} />
               </div>
               <div>
                 <div style={{
                   fontFamily: 'var(--cb-font-sans)',
-                  fontSize: '18px',
+                  fontSize: '17px',
                   fontWeight: 700,
-                  letterSpacing: '-0.5px',
+                  letterSpacing: '-0.4px',
                   color: 'var(--cb-ink)',
                   lineHeight: 1.1
                 }}>
                   EcoSphere
                 </div>
-                <div style={{ fontSize: '9px', color: 'var(--cb-muted)', fontWeight: 600 }}>
+                <div className="cb-desktop-only" style={{ fontSize: '9px', color: 'var(--cb-muted)', fontWeight: 600 }}>
                   ESG PLATFORM
                 </div>
               </div>
             </div>
 
-            {/* Desktop Navigation Bar */}
+            {/* Desktop Nav Items */}
             <nav className="cb-desktop-nav">
               {navItems.map(item => {
                 const isActive = activeTab === item.id;
@@ -102,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      padding: '8px 12px',
+                      padding: '7px 12px',
                       borderRadius: 'var(--cb-radius-pill)',
                       fontSize: '13px',
                       fontWeight: isActive ? 600 : 500,
@@ -136,14 +137,14 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Points & XP Counter */}
             <div className="cb-points-pill">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#b45309' }}>
-                <Coins size={13} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#b45309' }}>
+                <Coins size={12} />
                 <span className="cb-mono">{currentUser.points}</span>
                 <span className="cb-desktop-only" style={{ fontSize: '10px', color: 'var(--cb-muted)' }}>PTS</span>
               </div>
-              <div style={{ width: '1px', height: '12px', backgroundColor: 'var(--cb-hairline)' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--cb-primary)' }}>
-                <Award size={13} />
+              <div style={{ width: '1px', height: '10px', backgroundColor: 'var(--cb-hairline)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--cb-primary)' }}>
+                <Award size={12} />
                 <span className="cb-mono">{currentUser.xp}</span>
                 <span className="cb-desktop-only" style={{ fontSize: '10px', color: 'var(--cb-muted)' }}>XP</span>
               </div>
@@ -155,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="cb-icon-btn"
               aria-label="Notifications"
             >
-              <Bell size={16} />
+              <Bell size={15} />
               {unreadNotifs > 0 && (
                 <span className="cb-unread-badge">
                   {unreadNotifs}
@@ -163,26 +164,39 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* User Persona & Role Selector */}
-            <div className="cb-user-role-badge">
+            {/* Desktop Role Selector */}
+            <div className="cb-user-role-badge cb-desktop-only">
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
                 style={{
-                  width: '24px',
-                  height: '24px',
+                  width: '22px',
+                  height: '22px',
                   borderRadius: 'var(--cb-radius-full)',
                   objectFit: 'cover'
                 }}
               />
-              <div className="cb-desktop-only" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--cb-ink)' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--cb-ink)' }}>
                 {currentUser.name.split(' ')[0]}
-              </div>
-              
+              </span>
               <select
                 value={currentUser.role}
                 onChange={(e) => switchRole(e.target.value as UserRole)}
                 className="cb-role-select"
+              >
+                <option value="ADMIN">Role: Admin</option>
+                <option value="AUDITOR">Role: Auditor</option>
+                <option value="EMPLOYEE">Role: Employee</option>
+              </select>
+            </div>
+
+            {/* Mobile Persona Avatar / Role Trigger */}
+            <div className="cb-mobile-only" style={{ display: 'flex', alignItems: 'center' }}>
+              <select
+                value={currentUser.role}
+                onChange={(e) => switchRole(e.target.value as UserRole)}
+                className="cb-role-select"
+                style={{ fontSize: '10px', padding: '3px 4px', maxWidth: '75px' }}
               >
                 <option value="ADMIN">Admin</option>
                 <option value="AUDITOR">Auditor</option>
@@ -190,22 +204,66 @@ export const Header: React.FC<HeaderProps> = ({
               </select>
             </div>
 
-            {/* Hamburger Button (Mobile Only) */}
+            {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="cb-icon-btn cb-mobile-only"
               aria-label="Toggle Navigation Menu"
             >
-              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              {mobileMenuOpen ? <X size={17} /> : <Menu size={17} />}
             </button>
           </div>
 
         </div>
 
-        {/* Mobile Dropdown Navigation */}
+        {/* Mobile Dropdown Menu with Full Role Switcher & ERP Action */}
         {mobileMenuOpen && (
           <div className="cb-mobile-menu">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px 0' }}>
+            {/* Active User Card in Mobile Menu */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 12px',
+              backgroundColor: 'var(--cb-surface-soft)',
+              borderRadius: 'var(--cb-radius-lg)',
+              marginBottom: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: 'var(--cb-radius-full)',
+                    objectFit: 'cover'
+                  }}
+                />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--cb-ink)' }}>
+                    {currentUser.name}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--cb-muted)' }}>
+                    Active Persona • {currentUser.role}
+                  </div>
+                </div>
+              </div>
+
+              <select
+                value={currentUser.role}
+                onChange={(e) => switchRole(e.target.value as UserRole)}
+                className="cb-role-select"
+                style={{ padding: '4px 8px', fontSize: '12px' }}
+              >
+                <option value="ADMIN">Admin (Director)</option>
+                <option value="AUDITOR">Auditor</option>
+                <option value="EMPLOYEE">Employee</option>
+              </select>
+            </div>
+
+            {/* Nav Links */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {navItems.map(item => {
                 const isActive = activeTab === item.id;
                 return (
@@ -233,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               })}
 
-              <div style={{ paddingTop: '10px', borderTop: '1px solid var(--cb-hairline)' }}>
+              <div style={{ paddingTop: '10px', marginTop: '6px', borderTop: '1px solid var(--cb-hairline)' }}>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
@@ -243,7 +301,7 @@ export const Header: React.FC<HeaderProps> = ({
                   style={{ width: '100%' }}
                 >
                   <PlusCircle size={15} />
-                  <span>Record ERP Carbon</span>
+                  <span>Record ERP Carbon Transaction</span>
                 </button>
               </div>
             </div>
