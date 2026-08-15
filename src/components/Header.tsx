@@ -3,6 +3,8 @@ import { useEcoSphere } from '../context/EcoSphereContext';
 import { UserRole } from '../types/esg';
 import { 
   Globe, 
+  Cloud, 
+  RefreshCw, 
   Bell, 
   Coins, 
   Award, 
@@ -36,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   openERPSimulator,
   openLoginModal
 }) => {
-  const { currentUser, switchRole, state, isAuthenticated, logout } = useEcoSphere();
+  const { currentUser, switchRole, state, isAuthenticated, logout, cloudSyncStatus, forceCloudSync } = useEcoSphere();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadNotifs = state.notifications.filter(n => !n.read).length;
 
@@ -130,6 +132,25 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Icons & Auth Controls */}
           <div className="cb-header-right">
             
+            {/* Cloud Sync Status Indicator */}
+            <button
+              onClick={forceCloudSync}
+              className="cb-btn cb-btn-outline cb-btn-sm cb-desktop-only"
+              style={{
+                fontSize: '11px',
+                height: '28px',
+                padding: '0 10px',
+                gap: '5px',
+                borderColor: cloudSyncStatus === 'CONNECTED' ? 'rgba(5, 177, 105, 0.4)' : 'var(--cb-hairline)'
+              }}
+              title="Real-time multi-device cloud synchronization active (Click to force refresh)"
+            >
+              <Cloud size={13} color={cloudSyncStatus === 'CONNECTED' ? 'var(--cb-semantic-up)' : 'var(--cb-primary)'} />
+              <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--cb-ink)' }}>
+                {cloudSyncStatus === 'CONNECTED' ? 'Cloud Live 🟢' : cloudSyncStatus === 'SYNCING' ? 'Syncing...' : 'Local 🟡'}
+              </span>
+            </button>
+
             {/* Quick ERP button (Desktop) */}
             <button
               onClick={openERPSimulator}
@@ -211,6 +232,32 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Mobile Dropdown Menu with Auth & Nav */}
         {mobileMenuOpen && (
           <div className="cb-mobile-menu">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '8px 12px',
+              backgroundColor: 'rgba(0, 82, 255, 0.05)',
+              borderRadius: 'var(--cb-radius-md)',
+              marginBottom: '10px',
+              border: '1px solid rgba(0, 82, 255, 0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Cloud size={14} color="var(--cb-primary)" />
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--cb-ink)' }}>
+                  Multi-Device Cloud Sync
+                </span>
+              </div>
+              <button
+                onClick={forceCloudSync}
+                className="cb-btn cb-btn-outline cb-btn-sm"
+                style={{ height: '24px', fontSize: '10px', padding: '0 8px' }}
+              >
+                <RefreshCw size={10} />
+                <span>Sync Now</span>
+              </button>
+            </div>
+
             {/* Active Persona Card in Mobile Menu */}
             <div style={{
               display: 'flex',

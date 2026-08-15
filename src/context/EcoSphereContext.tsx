@@ -1,3 +1,4 @@
+import { cloudSync, CloudSyncStatus } from '../services/cloudSync';
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import {
   EcoSphereState,
@@ -121,6 +122,8 @@ interface EcoSphereContextType {
   
   // Reset demo data
   resetToSeedData: () => void;
+  cloudSyncStatus: CloudSyncStatus;
+  forceCloudSync: () => Promise<void>;
 }
 
 const STORAGE_KEY = 'ecosphere_esg_platform_state_v3';
@@ -158,10 +161,78 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     return localStorage.getItem(AUTH_KEY) === 'true';
   });
 
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudSyncStatus>('CONNECTED');
+  const isLocalMutationRef = React.useRef(false);
+
+  // Subscribe to Cloud Sync status
+  useEffect(() => {
+    return cloudSync.onStatusChange(status => {
+      setCloudSyncStatus(status);
+    });
+  }, []);
+
+  // Initial Cloud State Pull & Periodic Real-Time Multi-Device Listener
+  useEffect(() => {
+    let isMounted = true;
+
+    async function syncInitial() {
+      const res = await cloudSync.pullState();
+      if (isMounted && res.success && res.state) {
+        setState(res.state);
+      } else if (isMounted && !res.state) {
+        // Initialize cloud with current state
+        cloudSync.pushState(state);
+      }
+    }
+
+    syncInitial();
+
+    // 8-second multi-device real-time sync poll
+    const interval = setInterval(async () => {
+      if (!isLocalMutationRef.current) {
+        const res = await cloudSync.pullState();
+        if (isMounted && res.success && res.state) {
+          setState(res.state);
+        }
+      }
+    }, 7000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Force manual cloud sync
+  const forceCloudSync = async () => {
+    const res = await cloudSync.pullState();
+    if (res.success && res.state) {
+      setState(res.state);
+      addNotification({
+        title: '☁️ Cloud Sync Completed',
+        message: 'Synchronized latest data from all connected devices.',
+        type: 'POLICY_ACK'
+      });
+    } else {
+      cloudSync.pushState(state);
+      addNotification({
+        title: '☁️ Cloud State Broadcasted',
+        message: 'Pushed local state to global cloud store.',
+        type: 'POLICY_ACK'
+      });
+    }
+  };
+
   // Persist state
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      isLocalMutationRef.current = true;
+      cloudSync.pushState(state);
+      const timer = setTimeout(() => {
+        isLocalMutationRef.current = false;
+      }, 1500);
+      return () => clearTimeout(timer);
     } catch (e) {
       console.error('State storage error:', e);
     }
@@ -1143,6 +1214,8 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     markNotificationAsRead,
     markAllNotificationsAsRead,
     clearNotifications,
+    cloudSyncStatus,
+    forceCloudSync,
     resetToSeedData
   };
 
