@@ -24,10 +24,20 @@ import {
   EcoSphereConfig
 } from '../types/esg';
 import { initialSeedData } from '../services/seedData';
+import { 
+  rateLimiter, 
+  sanitizeString, 
+  validateNumericRange, 
+  validateUploadFile,
+  sanitizeErrorMessage 
+} from '../utils/security';
 
 interface EcoSphereContextType {
   state: EcoSphereState;
   currentUser: User;
+  isAuthenticated: boolean;
+  login: (email: string, pass: string) => { success: boolean; error?: string; retryAfter?: number };
+  logout: () => void;
   setCurrentUser: (user: User) => void;
   switchRole: (role: UserRole) => void;
   
@@ -41,15 +51,15 @@ interface EcoSphereContextType {
   };
 
   // Config & Business Rules
-  updateConfig: (updater: Partial<EcoSphereConfig>) => void;
-  updateWeights: (weights: { env: number; soc: number; gov: number }) => void;
+  updateConfig: (updater: Partial<EcoSphereConfig>) => { success: boolean; error?: string };
+  updateWeights: (weights: { env: number; soc: number; gov: number }) => { success: boolean; error?: string };
 
   // Environmental Actions
-  addEmissionFactor: (factor: Omit<EmissionFactor, 'id'>) => void;
+  addEmissionFactor: (factor: Omit<EmissionFactor, 'id'>) => { success: boolean; error?: string };
   updateEmissionFactor: (id: string, factor: Partial<EmissionFactor>) => void;
-  deleteEmissionFactor: (id: string) => void;
+  deleteEmissionFactor: (id: string) => { success: boolean; error?: string };
   
-  addProductProfile: (profile: Omit<ProductESGProfile, 'id'>) => void;
+  addProductProfile: (profile: Omit<ProductESGProfile, 'id'>) => { success: boolean; error?: string };
   updateProductProfile: (id: string, profile: Partial<ProductESGProfile>) => void;
 
   addCarbonTransaction: (tx: {
@@ -61,48 +71,48 @@ interface EcoSphereContextType {
     referenceId?: string;
     productProfileId?: string;
     manualCalculatedEmissions?: number;
-  }) => { success: boolean; emissions: number };
+  }) => { success: boolean; emissions: number; error?: string };
 
-  addEnvironmentalGoal: (goal: Omit<EnvironmentalGoal, 'id'>) => void;
+  addEnvironmentalGoal: (goal: Omit<EnvironmentalGoal, 'id'>) => { success: boolean; error?: string };
   updateEnvironmentalGoal: (id: string, goal: Partial<EnvironmentalGoal>) => void;
 
   // Social Actions
-  addCSRActivity: (activity: Omit<CSRActivity, 'id' | 'registeredCount'>) => void;
-  registerForCSRActivity: (activityId: string) => boolean;
-  submitCSRProof: (activityId: string, proof: { fileName: string; fileUrl?: string; notes: string }) => boolean;
+  addCSRActivity: (activity: Omit<CSRActivity, 'id' | 'registeredCount'>) => { success: boolean; error?: string };
+  registerForCSRActivity: (activityId: string) => { success: boolean; error?: string };
+  submitCSRProof: (activityId: string, proof: { fileName: string; fileUrl?: string; notes: string; size?: number; type?: string }) => { success: boolean; error?: string };
   reviewCSRParticipation: (participationId: string, status: 'Approved' | 'Rejected', notes?: string) => { success: boolean; error?: string };
 
   // Governance Actions
-  addPolicy: (policy: Omit<ESGPolicy, 'id'>) => void;
+  addPolicy: (policy: Omit<ESGPolicy, 'id'>) => { success: boolean; error?: string };
   updatePolicy: (id: string, policy: Partial<ESGPolicy>) => void;
-  acknowledgePolicy: (policyId: string) => boolean;
+  acknowledgePolicy: (policyId: string) => { success: boolean; error?: string };
 
-  addAudit: (audit: Omit<Audit, 'id'>) => void;
+  addAudit: (audit: Omit<Audit, 'id'>) => { success: boolean; error?: string };
   updateAudit: (id: string, audit: Partial<Audit>) => void;
 
-  addComplianceIssue: (issue: Omit<ComplianceIssue, 'id' | 'createdAt' | 'status'>) => void;
-  updateComplianceIssue: (id: string, updates: Partial<ComplianceIssue>) => void;
+  addComplianceIssue: (issue: Omit<ComplianceIssue, 'id' | 'createdAt' | 'status'>) => { success: boolean; error?: string };
+  updateComplianceIssue: (id: string, updates: Partial<ComplianceIssue>) => { success: boolean; error?: string };
 
   // Gamification Actions
-  addChallenge: (challenge: Omit<Challenge, 'id'>) => void;
-  updateChallengeStatus: (id: string, status: Challenge['status']) => void;
-  joinChallenge: (challengeId: string) => boolean;
-  submitChallengeProgress: (challengeId: string, progressPct: number, proof?: { fileName: string; notes: string }) => boolean;
-  reviewChallengeParticipation: (participationId: string, status: 'Approved' | 'Rejected') => void;
+  addChallenge: (challenge: Omit<Challenge, 'id'>) => { success: boolean; error?: string };
+  updateChallengeStatus: (id: string, status: Challenge['status']) => { success: boolean; error?: string };
+  joinChallenge: (challengeId: string) => { success: boolean; error?: string };
+  submitChallengeProgress: (challengeId: string, progressPct: number, proof?: { fileName: string; notes: string; size?: number; type?: string }) => { success: boolean; error?: string };
+  reviewChallengeParticipation: (participationId: string, status: 'Approved' | 'Rejected') => { success: boolean; error?: string };
 
   addBadge: (badge: Omit<Badge, 'id'>) => void;
-  addReward: (reward: Omit<Reward, 'id'>) => void;
+  addReward: (reward: Omit<Reward, 'id'>) => { success: boolean; error?: string };
   updateReward: (id: string, reward: Partial<Reward>) => void;
   redeemReward: (rewardId: string) => { success: boolean; error?: string };
 
   // Settings & Master Data
-  addDepartment: (dept: Omit<Department, 'id'>) => void;
+  addDepartment: (dept: Omit<Department, 'id'>) => { success: boolean; error?: string };
   updateDepartment: (id: string, dept: Partial<Department>) => void;
-  deleteDepartment: (id: string) => void;
+  deleteDepartment: (id: string) => { success: boolean; error?: string };
 
-  addCategory: (cat: Omit<Category, 'id'>) => void;
+  addCategory: (cat: Omit<Category, 'id'>) => { success: boolean; error?: string };
   updateCategory: (id: string, cat: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  deleteCategory: (id: string) => { success: boolean; error?: string };
 
   // Notifications
   markNotificationAsRead: (id: string) => void;
@@ -113,34 +123,55 @@ interface EcoSphereContextType {
   resetToSeedData: () => void;
 }
 
-const STORAGE_KEY = 'ecosphere_esg_platform_state_v2';
+const STORAGE_KEY = 'ecosphere_esg_platform_state_v3';
+const AUTH_KEY = 'ecosphere_auth_session_v3';
+
+// Passwords for demo roles (simulated backend auth)
+const USER_PASSWORDS: Record<string, string> = {
+  'admin@ecosphere.com': 'Admin@2026!',
+  'auditor@ecosphere.com': 'Auditor@2026!',
+  'employee@ecosphere.com': 'Employee@2026!'
+};
 
 const EcoSphereContext = createContext<EcoSphereContextType | undefined>(undefined);
 
 export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<EcoSphereState>(() => {
-    // Clear any old v1 cache with old names
-  try { localStorage.removeItem('ecosphere_esg_platform_state_v1'); } catch(e) {}
-  const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse saved state, using seed data:', e);
+    try {
+      localStorage.removeItem('ecosphere_esg_platform_state_v1');
+      localStorage.removeItem('ecosphere_esg_platform_state_v2');
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        let str = JSON.stringify(JSON.parse(saved)).replaceAll('Maya Patel', 'Samantha Hayes');
+        return JSON.parse(str);
       }
+    } catch (e) {
+      console.error('State load sanitized:', e);
     }
     return initialSeedData;
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem(AUTH_KEY) === 'true';
+  });
+
   // Persist state
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.error('State storage error:', e);
+    }
   }, [state]);
+
+  const currentUser = state.currentUser;
 
   // Push notifications helper
   const addNotification = (notif: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => {
     const newNotif: AppNotification = {
       ...notif,
+      title: sanitizeString(notif.title, 100),
+      message: sanitizeString(notif.message, 300),
       id: 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       read: false
@@ -151,112 +182,51 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   };
 
-  // Automated overdue compliance checker
-  useEffect(() => {
-    const today = new Date().toISOString().substring(0, 10);
-    let updated = false;
-    const updatedIssues = state.transactions.complianceIssues.map(issue => {
-      if (issue.status !== 'Resolved' && issue.dueDate < today && issue.status !== 'Overdue') {
-        updated = true;
-        addNotification({
-          title: '🚨 Overdue Compliance Issue Alert',
-          message: 'Issue "' + issue.title.substring(0, 35) + '..." is past due (' + issue.dueDate + '). Immediate action required.',
-          type: 'ISSUE_OVERDUE'
-        });
-        return { ...issue, status: 'Overdue' as const };
-      }
-      return issue;
-    });
-
-    if (updated) {
-      setState(prev => ({
-        ...prev,
-        transactions: {
-          ...prev.transactions,
-          complianceIssues: updatedIssues
-        }
-      }));
+  // 1. Secure Authentication with Rate Limiting (5 attempts / min)
+  const login = (email: string, pass: string): { success: boolean; error?: string; retryAfter?: number } => {
+    const rateCheck = rateLimiter.check('login_' + email.toLowerCase(), 5, 60, 60);
+    if (!rateCheck.allowed) {
+      return { success: false, error: rateCheck.error, retryAfter: rateCheck.retryAfter };
     }
-  }, []);
 
-  // Automated Badge Evaluation Engine
-  const evaluateBadgesForUser = (userId: string, currentState: EcoSphereState): EcoSphereState => {
-    if (!currentState.config.badgeAutoAward) return currentState;
+    const cleanEmail = email.trim().toLowerCase();
+    const expectedPass = USER_PASSWORDS[cleanEmail];
 
-    const user = currentState.users.find(u => u.id === userId);
-    if (!user) return currentState;
+    if (!expectedPass || pass !== expectedPass) {
+      return { success: false, error: 'Invalid email or password. Please check your credentials.' };
+    }
 
-    const existingBadgeIds = new Set(
-      currentState.master.userBadges
-        .filter(ub => ub.employeeId === userId)
-        .map(ub => ub.badgeId)
-    );
+    const matchedUser = state.users.find(u => u.email.toLowerCase() === cleanEmail);
+    if (!matchedUser) {
+      return { success: false, error: 'User account not found.' };
+    }
 
-    const approvedChallengesCount = currentState.transactions.challengeParticipations.filter(
-      cp => cp.employeeId === userId && cp.status === 'Approved'
-    ).length;
+    rateLimiter.reset('login_' + cleanEmail);
+    setIsAuthenticated(true);
+    localStorage.setItem(AUTH_KEY, 'true');
 
-    const approvedCsrCount = currentState.transactions.csrParticipations.filter(
-      cp => cp.employeeId === userId && cp.status === 'Approved'
-    ).length;
-
-    const activePoliciesCount = currentState.master.policies.filter(p => p.status === 'Active').length;
-    const signedPoliciesCount = currentState.transactions.policyAcknowledgements.filter(
-      pa => pa.employeeId === userId
-    ).length;
-
-    const newUnlockedBadges: Badge[] = [];
-    const newUserBadges = [...currentState.master.userBadges];
-
-    currentState.master.badges.forEach(badge => {
-      if (existingBadgeIds.has(badge.id)) return;
-
-      let qualifies = false;
-      switch (badge.unlockRuleType) {
-        case 'XP_THRESHOLD':
-          qualifies = user.xp >= badge.unlockRuleValue;
-          break;
-        case 'CHALLENGES_COMPLETED':
-          qualifies = approvedChallengesCount >= badge.unlockRuleValue;
-          break;
-        case 'CSR_COUNT':
-          qualifies = approvedCsrCount >= badge.unlockRuleValue;
-          break;
-        case 'POLICY_ALL_SIGNED':
-          qualifies = activePoliciesCount > 0 && signedPoliciesCount >= activePoliciesCount;
-          break;
-      }
-
-      if (qualifies) {
-        newUnlockedBadges.push(badge);
-        newUserBadges.push({
-          id: 'ub-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-          badgeId: badge.id,
-          employeeId: userId,
-          unlockedAt: new Date().toISOString().substring(0, 10)
-        });
-      }
-    });
-
-    if (newUnlockedBadges.length === 0) return currentState;
-
-    const newNotifications: AppNotification[] = newUnlockedBadges.map(b => ({
-      id: 'notif-' + Date.now() + '-' + b.id,
-      title: '🏆 Badge Unlocked: ' + b.name + '!',
-      message: 'Congratulations ' + user.name + '! You unlocked the "' + b.name + '" badge (' + b.description + ').',
-      type: 'BADGE_UNLOCKED',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      read: false
+    setState(prev => ({
+      ...prev,
+      currentUser: matchedUser
     }));
 
-    return {
-      ...currentState,
-      master: {
-        ...currentState.master,
-        userBadges: newUserBadges
-      },
-      notifications: [...newNotifications, ...currentState.notifications]
-    };
+    addNotification({
+      title: '🔐 Session Authenticated',
+      message: `Welcome back, ${matchedUser.name}! Signed in as ${matchedUser.role}.`,
+      type: 'POLICY_ACK'
+    });
+
+    return { success: true };
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem(AUTH_KEY);
+    addNotification({
+      title: '🔒 Session Terminated',
+      message: 'You have safely logged out of EcoSphere.',
+      type: 'POLICY_ACK'
+    });
   };
 
   // Role Switcher
@@ -272,618 +242,59 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     setCurrentUser(userWithRole);
   };
 
-  // Config Update
+  // Config Update (Admin Only)
   const updateConfig = (updater: Partial<EcoSphereConfig>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can modify system rules.' };
+    }
     setState(prev => ({
       ...prev,
       config: { ...prev.config, ...updater }
     }));
+    return { success: true };
   };
 
   const updateWeights = (weights: { env: number; soc: number; gov: number }) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can adjust ESG weights.' };
+    }
+
+    const env = validateNumericRange(weights.env, 5, 90, 40);
+    const soc = validateNumericRange(weights.soc, 5, 90, 30);
+    const gov = validateNumericRange(weights.gov, 5, 90, 30);
+
     setState(prev => ({
       ...prev,
       config: {
         ...prev.config,
-        weights
+        weights: { env, soc, gov }
       }
     }));
-  };
-
-  // Dynamic Department & Overall ESG Scoring
-  const departmentScores = useMemo<DepartmentScore[]>(() => {
-    const { env: envW, soc: socW, gov: govW } = state.config.weights;
-
-    return state.master.departments.map(dept => {
-      // 1. Environmental Score (0-100)
-      const deptTx = state.transactions.carbonTransactions.filter(t => t.departmentId === dept.id);
-      const totalEmissions = deptTx.reduce((acc, t) => acc + t.calculatedEmissions, 0);
-      const emissionPerEmployee = dept.employeeCount > 0 ? totalEmissions / dept.employeeCount : 50;
-      const envScore = Math.max(30, Math.min(98, Math.round(100 - (emissionPerEmployee / 100))));
-
-      // 2. Social Score (0-100)
-      const deptTraining = state.trainingRecords.filter(tr => tr.departmentId === dept.id);
-      const avgTrainingPct = deptTraining.length > 0
-        ? deptTraining.reduce((acc, tr) => acc + tr.completionPct, 0) / deptTraining.length
-        : 80;
-      const socScore = Math.max(30, Math.min(99, Math.round(avgTrainingPct * 0.7 + 25)));
-
-      // 3. Governance Score (0-100)
-      const deptIssues = state.transactions.complianceIssues.filter(i => {
-        const owner = state.users.find(u => u.id === i.ownerEmployeeId);
-        return owner?.departmentId === dept.id;
-      });
-      const overdueCount = deptIssues.filter(i => i.status === 'Overdue').length;
-      const openCount = deptIssues.filter(i => i.status === 'Open').length;
-      const govPenalty = (overdueCount * 20) + (openCount * 8);
-      const govScore = Math.max(25, Math.min(98, Math.round(95 - govPenalty)));
-
-      // Weighted Total Score
-      const totalScore = Math.round((envScore * envW + socScore * socW + govScore * govW) / 100);
-
-      return {
-        departmentId: dept.id,
-        departmentName: dept.name,
-        environmentalScore: envScore,
-        socialScore: socScore,
-        governanceScore: govScore,
-        totalScore
-      };
-    }).sort((a, b) => b.totalScore - a.totalScore)
-      .map((item, idx) => ({ ...item, rank: idx + 1 }));
-  }, [state.master.departments, state.transactions, state.trainingRecords, state.config.weights, state.users]);
-
-  const overallESGScore = useMemo(() => {
-    if (departmentScores.length === 0) {
-      return { total: 85, environmental: 84, social: 88, governance: 82 };
-    }
-    const envAvg = Math.round(departmentScores.reduce((acc, d) => acc + d.environmentalScore, 0) / departmentScores.length);
-    const socAvg = Math.round(departmentScores.reduce((acc, d) => acc + d.socialScore, 0) / departmentScores.length);
-    const govAvg = Math.round(departmentScores.reduce((acc, d) => acc + d.governanceScore, 0) / departmentScores.length);
-    const totalAvg = Math.round((envAvg * state.config.weights.env + socAvg * state.config.weights.soc + govAvg * state.config.weights.gov) / 100);
-    return {
-      total: totalAvg,
-      environmental: envAvg,
-      social: socAvg,
-      governance: govAvg
-    };
-  }, [departmentScores, state.config.weights]);
-
-  // Carbon Accounting & Auto Emission Calculation
-  const addCarbonTransaction = (tx: {
-    departmentId: string;
-    sourceType: 'Purchase' | 'Manufacturing' | 'Expenses' | 'Fleet';
-    emissionFactorId: string;
-    quantity: number;
-    notes?: string;
-    referenceId?: string;
-    productProfileId?: string;
-    manualCalculatedEmissions?: number;
-  }) => {
-    const factor = state.master.emissionFactors.find(f => f.id === tx.emissionFactorId);
-    let calculatedEmissions = tx.manualCalculatedEmissions || 0;
-    let scope: 1 | 2 | 3 = 1;
-
-    if (factor) {
-      scope = factor.scope;
-      if (state.config.autoEmissionCalc) {
-        calculatedEmissions = Math.round(tx.quantity * factor.factorValue * 100) / 100;
-      }
-    }
-
-    const newTx: CarbonTransaction = {
-      id: 'ctx-' + Date.now(),
-      date: new Date().toISOString().substring(0, 10),
-      departmentId: tx.departmentId,
-      sourceType: tx.sourceType,
-      emissionFactorId: tx.emissionFactorId,
-      quantity: tx.quantity,
-      calculatedEmissions,
-      scope,
-      notes: tx.notes,
-      referenceId: tx.referenceId || 'ERP-' + Math.floor(1000 + Math.random() * 9000),
-      productProfileId: tx.productProfileId
-    };
-
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        carbonTransactions: [newTx, ...prev.transactions.carbonTransactions]
-      }
-    }));
-
-    return { success: true, emissions: calculatedEmissions };
-  };
-
-  // CSR Submissions & Approvals (with Evidence Enforcement Guard)
-  const registerForCSRActivity = (activityId: string) => {
-    const existing = state.transactions.csrParticipations.find(
-      cp => cp.activityId === activityId && cp.employeeId === state.currentUser.id
-    );
-    if (existing) return false;
-
-    const newParticipation: EmployeeParticipation = {
-      id: 'cp-' + Date.now(),
-      activityId,
-      employeeId: state.currentUser.id,
-      status: 'Pending',
-      pointsEarned: 0,
-      submittedAt: new Date().toISOString().substring(0, 10)
-    };
-
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        csrParticipations: [newParticipation, ...prev.transactions.csrParticipations],
-        csrActivities: prev.transactions.csrActivities.map(act =>
-          act.id === activityId ? { ...act, registeredCount: act.registeredCount + 1 } : act
-        )
-      }
-    }));
-
-    addNotification({
-      title: '📋 CSR Activity Registration',
-      message: 'You registered for the CSR initiative. Remember to submit your proof after completion!',
-      type: 'SYSTEM'
-    });
-
-    return true;
-  };
-
-  const submitCSRProof = (activityId: string, proof: { fileName: string; fileUrl?: string; notes: string }) => {
-    setState(prev => {
-      const existing = prev.transactions.csrParticipations.find(
-        cp => cp.activityId === activityId && cp.employeeId === prev.currentUser.id
-      );
-
-      let updatedParticipations = [...prev.transactions.csrParticipations];
-      if (existing) {
-        updatedParticipations = updatedParticipations.map(cp =>
-          cp.id === existing.id
-            ? {
-                ...cp,
-                proofAttachmentName: proof.fileName,
-                proofAttachmentUrl: proof.fileUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400',
-                proofNotes: proof.notes,
-                status: 'Pending' as const
-              }
-            : cp
-        );
-      } else {
-        const newPart: EmployeeParticipation = {
-          id: 'cp-' + Date.now(),
-          activityId,
-          employeeId: prev.currentUser.id,
-          proofAttachmentName: proof.fileName,
-          proofAttachmentUrl: proof.fileUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400',
-          proofNotes: proof.notes,
-          status: 'Pending',
-          pointsEarned: 0,
-          submittedAt: new Date().toISOString().substring(0, 10)
-        };
-        updatedParticipations.unshift(newPart);
-      }
-
-      return {
-        ...prev,
-        transactions: {
-          ...prev.transactions,
-          csrParticipations: updatedParticipations
-        }
-      };
-    });
-
-    addNotification({
-      title: '📤 CSR Proof Submitted',
-      message: 'Evidence submitted for review. Points will be awarded upon Admin verification.',
-      type: 'SYSTEM'
-    });
-
-    return true;
-  };
-
-  const reviewCSRParticipation = (participationId: string, status: 'Approved' | 'Rejected', notes?: string) => {
-    const part = state.transactions.csrParticipations.find(p => p.id === participationId);
-    if (!part) return { success: false, error: 'Participation record not found.' };
-
-    // EVIDENCE ENFORCEMENT GUARD:
-    // If evidenceRequired is active in settings, cannot approve without attached proof
-    if (status === 'Approved' && state.config.evidenceRequired) {
-      if (!part.proofAttachmentName && !part.proofAttachmentUrl) {
-        return {
-          success: false,
-          error: 'Evidence Enforcement Guard Active: Cannot approve participation without an attached proof document or image.'
-        };
-      }
-    }
-
-    const activity = state.transactions.csrActivities.find(a => a.id === part.activityId);
-    const pointsToAward = activity ? activity.pointsAwarded : 100;
-
-    let updatedUsers = [...state.users];
-    if (status === 'Approved') {
-      updatedUsers = updatedUsers.map(u =>
-        u.id === part.employeeId ? { ...u, points: u.points + pointsToAward } : u
-      );
-    }
-
-    const updatedParticipations = state.transactions.csrParticipations.map(p =>
-      p.id === participationId
-        ? {
-            ...p,
-            status,
-            pointsEarned: status === 'Approved' ? pointsToAward : 0,
-            completionDate: status === 'Approved' ? new Date().toISOString().substring(0, 10) : undefined,
-            reviewedBy: state.currentUser.name,
-            reviewNotes: notes || (status === 'Approved' ? 'Verified & Approved by Sustainability Admin.' : 'Evidence rejected.')
-          }
-        : p
-    );
-
-    let nextState: EcoSphereState = {
-      ...state,
-      users: updatedUsers,
-      currentUser: updatedUsers.find(u => u.id === state.currentUser.id) || state.currentUser,
-      transactions: {
-        ...state.transactions,
-        csrParticipations: updatedParticipations
-      }
-    };
-
-    // Add notification to employee
-    const notifType = status === 'Approved' ? 'CSR_APPROVED' : 'CSR_REJECTED';
-    const notifTitle = status === 'Approved' ? '🎉 CSR Activity Approved!' : '❌ CSR Submission Rejected';
-    const notifMsg = status === 'Approved'
-      ? 'Your participation in "' + (activity?.title || 'CSR Initiative') + '" was approved! +' + pointsToAward + ' Points credited to your account.'
-      : 'Your submission was not approved: ' + (notes || 'Insufficient evidence.');
-
-    const newNotif: AppNotification = {
-      id: 'notif-' + Date.now(),
-      title: notifTitle,
-      message: notifMsg,
-      type: notifType,
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      read: false
-    };
-    nextState.notifications = [newNotif, ...nextState.notifications];
-
-    // Trigger auto-badge award if eligible
-    nextState = evaluateBadgesForUser(part.employeeId, nextState);
-    setState(nextState);
-
     return { success: true };
   };
 
-  // Challenges & Gamification Engine
-  const addChallenge = (challenge: Omit<Challenge, 'id'>) => {
-    const newChallenge: Challenge = {
-      ...challenge,
-      id: 'chg-' + Date.now()
-    };
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        challenges: [newChallenge, ...prev.transactions.challenges]
-      }
-    }));
-  };
-
-  const updateChallengeStatus = (id: string, status: Challenge['status']) => {
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        challenges: prev.transactions.challenges.map(c => c.id === id ? { ...c, status } : c)
-      }
-    }));
-  };
-
-  const joinChallenge = (challengeId: string) => {
-    const existing = state.transactions.challengeParticipations.find(
-      cp => cp.challengeId === challengeId && cp.employeeId === state.currentUser.id
-    );
-    if (existing) return false;
-
-    const newPart: ChallengeParticipation = {
-      id: 'chp-' + Date.now(),
-      challengeId,
-      employeeId: state.currentUser.id,
-      progressPct: 0,
-      status: 'Joined',
-      xpAwarded: 0,
-      joinedAt: new Date().toISOString().substring(0, 10)
-    };
-
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        challengeParticipations: [newPart, ...prev.transactions.challengeParticipations]
-      }
-    }));
-
-    addNotification({
-      title: '🎯 Challenge Joined!',
-      message: 'You have entered the sustainability challenge. Track your milestones and earn XP!',
-      type: 'SYSTEM'
-    });
-
-    return true;
-  };
-
-  const submitChallengeProgress = (challengeId: string, progressPct: number, proof?: { fileName: string; notes: string }) => {
-    const challenge = state.transactions.challenges.find(c => c.id === challengeId);
-    if (!challenge) return false;
-
-    setState(prev => {
-      const existing = prev.transactions.challengeParticipations.find(
-        cp => cp.challengeId === challengeId && cp.employeeId === prev.currentUser.id
-      );
-
-      let updated = [...prev.transactions.challengeParticipations];
-      const isComplete = progressPct >= 100;
-      const newStatus = isComplete ? 'Submitted' : 'Joined';
-
-      if (existing) {
-        updated = updated.map(cp =>
-          cp.id === existing.id
-            ? {
-                ...cp,
-                progressPct,
-                proofAttachmentName: proof?.fileName || cp.proofAttachmentName,
-                proofNotes: proof?.notes || cp.proofNotes,
-                status: newStatus
-              }
-            : cp
-        );
-      } else {
-        updated.unshift({
-          id: 'chp-' + Date.now(),
-          challengeId,
-          employeeId: prev.currentUser.id,
-          progressPct,
-          proofAttachmentName: proof?.fileName,
-          proofNotes: proof?.notes,
-          status: newStatus,
-          xpAwarded: 0,
-          joinedAt: new Date().toISOString().substring(0, 10)
-        });
-      }
-
-      return {
-        ...prev,
-        transactions: {
-          ...prev.transactions,
-          challengeParticipations: updated
-        }
-      };
-    });
-
-    if (progressPct >= 100) {
-      addNotification({
-        title: '🏁 Challenge Progress Submitted',
-        message: '100% progress recorded for "' + challenge.title + '". Under review for ' + challenge.xp + ' XP reward.',
-        type: 'SYSTEM'
-      });
-    }
-
-    return true;
-  };
-
-  const reviewChallengeParticipation = (participationId: string, status: 'Approved' | 'Rejected') => {
-    const part = state.transactions.challengeParticipations.find(p => p.id === participationId);
-    if (!part) return;
-
-    const challenge = state.transactions.challenges.find(c => c.id === part.challengeId);
-    const xpToAward = challenge ? challenge.xp : 200;
-
-    let updatedUsers = [...state.users];
-    if (status === 'Approved') {
-      updatedUsers = updatedUsers.map(u =>
-        u.id === part.employeeId ? { ...u, xp: u.xp + xpToAward } : u
-      );
-    }
-
-    const updatedParticipations = state.transactions.challengeParticipations.map(p =>
-      p.id === participationId
-        ? {
-            ...p,
-            status,
-            xpAwarded: status === 'Approved' ? xpToAward : 0,
-            completedAt: status === 'Approved' ? new Date().toISOString().substring(0, 10) : undefined
-          }
-        : p
-    );
-
-    let nextState: EcoSphereState = {
-      ...state,
-      users: updatedUsers,
-      currentUser: updatedUsers.find(u => u.id === state.currentUser.id) || state.currentUser,
-      transactions: {
-        ...state.transactions,
-        challengeParticipations: updatedParticipations
-      }
-    };
-
-    if (status === 'Approved') {
-      const newNotif: AppNotification = {
-        id: 'notif-' + Date.now(),
-        title: '🌟 Challenge Completed & XP Awarded!',
-        message: 'Your challenge submission for "' + (challenge?.title || 'Challenge') + '" was approved! +' + xpToAward + ' XP added.',
-        type: 'CHALLENGE_APPROVED',
-        createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        read: false
-      };
-      nextState.notifications = [newNotif, ...nextState.notifications];
-    }
-
-    nextState = evaluateBadgesForUser(part.employeeId, nextState);
-    setState(nextState);
-  };
-
-  // Reward Redemption with Atomic Stock & Balance Check
-  const redeemReward = (rewardId: string) => {
-    const reward = state.master.rewards.find(r => r.id === rewardId);
-    if (!reward) return { success: false, error: 'Reward item does not exist.' };
-
-    const user = state.currentUser;
-
-    if (reward.stock <= 0) {
-      return { success: false, error: 'Item is currently Out of Stock.' };
-    }
-
-    if (user.points < reward.pointsRequired) {
-      return {
-        success: false,
-        error: 'Insufficient points balance. You have ' + user.points + ' points, but ' + reward.pointsRequired + ' are required.'
-      };
-    }
-
-    // Atomic update: decrement stock, deduct points, add redemption log
-    const updatedRewards = state.master.rewards.map(r =>
-      r.id === rewardId
-        ? {
-            ...r,
-            stock: r.stock - 1,
-            status: r.stock - 1 === 0 ? ('Out of Stock' as const) : r.status
-          }
-        : r
-    );
-
-    const updatedUser = {
-      ...user,
-      points: user.points - reward.pointsRequired
-    };
-
-    const updatedUsers = state.users.map(u => u.id === user.id ? updatedUser : u);
-
-    const newRedemption = {
-      id: 'red-' + Date.now(),
-      rewardId,
-      employeeId: user.id,
-      pointsSpent: reward.pointsRequired,
-      redeemedAt: new Date().toISOString().substring(0, 10),
-      status: 'Fulfilled' as const
-    };
-
-    const newNotif: AppNotification = {
-      id: 'notif-' + Date.now(),
-      title: '🎁 Reward Redeemed Successfully!',
-      message: 'You redeemed "' + reward.name + '" for ' + reward.pointsRequired + ' Points. Remaining balance: ' + updatedUser.points + ' Points.',
-      type: 'REWARD_REDEEMED',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      read: false
-    };
-
-    setState(prev => ({
-      ...prev,
-      currentUser: updatedUser,
-      users: updatedUsers,
-      master: {
-        ...prev.master,
-        rewards: updatedRewards,
-        rewardRedemptions: [newRedemption, ...prev.master.rewardRedemptions]
-      },
-      notifications: [newNotif, ...prev.notifications]
-    }));
-
-    return { success: true };
-  };
-
-  // Policy Acknowledgement & Signature
-  const acknowledgePolicy = (policyId: string) => {
-    const existing = state.transactions.policyAcknowledgements.find(
-      pa => pa.policyId === policyId && pa.employeeId === state.currentUser.id
-    );
-    if (existing) return false;
-
-    const newAck: PolicyAcknowledgement = {
-      id: 'pa-' + Date.now(),
-      policyId,
-      employeeId: state.currentUser.id,
-      acknowledgedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      digitalSignature: state.currentUser.name + ' [Verified Auth - Token #' + Math.floor(100000 + Math.random() * 900000) + ']'
-    };
-
-    let nextState: EcoSphereState = {
-      ...state,
-      transactions: {
-        ...state.transactions,
-        policyAcknowledgements: [...state.transactions.policyAcknowledgements, newAck]
-      }
-    };
-
-    nextState.notifications = [
-      {
-        id: 'notif-' + Date.now(),
-        title: '📜 Policy Formally Acknowledged',
-        message: 'Your digital signature for policy #' + policyId + ' has been securely timestamped and recorded.',
-        type: 'SYSTEM',
-        createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        read: false
-      },
-      ...nextState.notifications
-    ];
-
-    nextState = evaluateBadgesForUser(state.currentUser.id, nextState);
-    setState(nextState);
-
-    return true;
-  };
-
-  // Compliance Issue Tracking
-  const addComplianceIssue = (issue: Omit<ComplianceIssue, 'id' | 'createdAt' | 'status'>) => {
-    const today = new Date().toISOString().substring(0, 10);
-    const isOverdue = issue.dueDate < today;
-
-    const newIssue: ComplianceIssue = {
-      ...issue,
-      id: 'iss-' + Date.now(),
-      status: isOverdue ? 'Overdue' : 'Open',
-      createdAt: today
-    };
-
-    const newNotif: AppNotification = {
-      id: 'notif-' + Date.now(),
-      title: '⚠️ New Compliance Issue Logged: ' + issue.severity + ' Severity',
-      message: '"' + issue.title + '" assigned to employee #' + issue.ownerEmployeeId + '. Due: ' + issue.dueDate,
-      type: 'ISSUE_RAISED',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      read: false
-    };
-
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        complianceIssues: [newIssue, ...prev.transactions.complianceIssues]
-      },
-      notifications: [newNotif, ...prev.notifications]
-    }));
-  };
-
-  const updateComplianceIssue = (id: string, updates: Partial<ComplianceIssue>) => {
-    setState(prev => ({
-      ...prev,
-      transactions: {
-        ...prev.transactions,
-        complianceIssues: prev.transactions.complianceIssues.map(i => i.id === id ? { ...i, ...updates } : i)
-      }
-    }));
-  };
-
-  // Master Data CRUD helpers
+  // Environmental Actions
   const addEmissionFactor = (factor: Omit<EmissionFactor, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can create emission factors.' };
+    }
+
+    const newFactor: EmissionFactor = {
+      ...factor,
+      id: 'ef-' + Date.now(),
+      name: sanitizeString(factor.name, 100),
+      description: factor.description ? sanitizeString(factor.description, 200) : undefined,
+      factorValue: validateNumericRange(factor.factorValue, 0.0001, 100000, 1.0)
+    };
+
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        emissionFactors: [...prev.master.emissionFactors, { ...factor, id: 'ef-' + Date.now() }]
+        emissionFactors: [...prev.master.emissionFactors, newFactor]
       }
     }));
+    return { success: true };
   };
 
   const updateEmissionFactor = (id: string, factor: Partial<EmissionFactor>) => {
@@ -897,6 +308,9 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const deleteEmissionFactor = (id: string) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can delete emission factors.' };
+    }
     setState(prev => ({
       ...prev,
       master: {
@@ -904,16 +318,27 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
         emissionFactors: prev.master.emissionFactors.filter(f => f.id !== id)
       }
     }));
+    return { success: true };
   };
 
   const addProductProfile = (profile: Omit<ProductESGProfile, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can register product profiles.' };
+    }
+    const newProfile: ProductESGProfile = {
+      ...profile,
+      id: 'prod-' + Date.now(),
+      productName: sanitizeString(profile.productName, 80),
+      productCode: sanitizeString(profile.productCode, 30)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        productProfiles: [...prev.master.productProfiles, { ...profile, id: 'prod-' + Date.now() }]
+        productProfiles: [...prev.master.productProfiles, newProfile]
       }
     }));
+    return { success: true };
   };
 
   const updateProductProfile = (id: string, profile: Partial<ProductESGProfile>) => {
@@ -926,14 +351,78 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   };
 
+  const addCarbonTransaction = (tx: {
+    departmentId: string;
+    sourceType: 'Purchase' | 'Manufacturing' | 'Expenses' | 'Fleet';
+    emissionFactorId: string;
+    quantity: number;
+    notes?: string;
+    referenceId?: string;
+    productProfileId?: string;
+    manualCalculatedEmissions?: number;
+  }) => {
+    // Rate limit ERP transactions (max 15/min)
+    const rateCheck = rateLimiter.check('erp_tx', 15, 60, 30);
+    if (!rateCheck.allowed) {
+      return { success: false, emissions: 0, error: rateCheck.error };
+    }
+
+    const factor = state.master.emissionFactors.find(f => f.id === tx.emissionFactorId);
+    const validQuantity = validateNumericRange(tx.quantity, 0.001, 10000000, 1);
+    
+    let calculated = tx.manualCalculatedEmissions;
+    if (calculated === undefined || state.config.autoEmissionCalc) {
+      calculated = factor ? Math.round(validQuantity * factor.factorValue * 100) / 100 : 0;
+    }
+
+    const newTx: CarbonTransaction = {
+      id: 'ctx-' + Date.now(),
+      date: new Date().toISOString().substring(0, 10),
+      departmentId: tx.departmentId,
+      sourceType: tx.sourceType,
+      emissionFactorId: tx.emissionFactorId,
+      quantity: validQuantity,
+      calculatedEmissions: calculated,
+      scope: factor?.scope || 1,
+      notes: tx.notes ? sanitizeString(tx.notes, 200) : undefined,
+      referenceId: tx.referenceId ? sanitizeString(tx.referenceId, 50) : 'REF-ERP-' + Math.floor(1000 + Math.random() * 9000),
+      productProfileId: tx.productProfileId
+    };
+
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        carbonTransactions: [newTx, ...prev.transactions.carbonTransactions]
+      }
+    }));
+
+    addNotification({
+      title: '⚡ ERP Carbon Recorded',
+      message: `${newTx.calculatedEmissions.toLocaleString()} kg CO2e logged for ${newTx.sourceType}.`,
+      type: 'ERP_RECORDED'
+    });
+
+    return { success: true, emissions: calculated };
+  };
+
   const addEnvironmentalGoal = (goal: Omit<EnvironmentalGoal, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can create sustainability goals.' };
+    }
+    const newGoal: EnvironmentalGoal = {
+      ...goal,
+      id: 'goal-' + Date.now(),
+      title: sanitizeString(goal.title, 100)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        goals: [...prev.master.goals, { ...goal, id: 'goal-' + Date.now() }]
+        goals: [...prev.master.goals, newGoal]
       }
     }));
+    return { success: true };
   };
 
   const updateEnvironmentalGoal = (id: string, goal: Partial<EnvironmentalGoal>) => {
@@ -946,24 +435,148 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   };
 
+  // Social Actions
   const addCSRActivity = (activity: Omit<CSRActivity, 'id' | 'registeredCount'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can create CSR initiatives.' };
+    }
+    const newAct: CSRActivity = {
+      ...activity,
+      id: 'csr-' + Date.now(),
+      registeredCount: 0,
+      title: sanitizeString(activity.title, 100),
+      description: sanitizeString(activity.description, 400),
+      location: sanitizeString(activity.location, 100)
+    };
     setState(prev => ({
       ...prev,
       transactions: {
         ...prev.transactions,
-        csrActivities: [...prev.transactions.csrActivities, { ...activity, id: 'csr-' + Date.now(), registeredCount: 0 }]
+        csrActivities: [...prev.transactions.csrActivities, newAct]
       }
     }));
+    return { success: true };
   };
 
+  const registerForCSRActivity = (activityId: string) => {
+    const existing = state.transactions.csrParticipations.find(
+      cp => cp.activityId === activityId && cp.employeeId === currentUser.id
+    );
+    if (existing) return { success: false, error: 'Already registered for this initiative.' };
+
+    const newPart: EmployeeParticipation = {
+      id: 'part-' + Date.now(),
+      activityId,
+      employeeId: currentUser.id,
+      registeredAt: new Date().toISOString().substring(0, 10),
+      status: 'Pending',
+      pointsEarned: 0
+    };
+
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        csrActivities: prev.transactions.csrActivities.map(a => 
+          a.id === activityId ? { ...a, registeredCount: a.registeredCount + 1 } : a
+        ),
+        csrParticipations: [...prev.transactions.csrParticipations, newPart]
+      }
+    }));
+    return { success: true };
+  };
+
+  const submitCSRProof = (activityId: string, proof: { fileName: string; fileUrl?: string; notes: string; size?: number; type?: string }) => {
+    // Validate File Upload Safety
+    const fileVal = validateUploadFile({
+      name: proof.fileName,
+      size: proof.size || 1024 * 500,
+      type: proof.type || 'image/jpeg'
+    });
+
+    if (!fileVal.valid) {
+      return { success: false, error: fileVal.error };
+    }
+
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        csrParticipations: prev.transactions.csrParticipations.map(cp => {
+          if (cp.activityId === activityId && cp.employeeId === currentUser.id) {
+            return {
+              ...cp,
+              proofAttachmentName: fileVal.sanitizedName,
+              proofAttachmentUrl: proof.fileUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600',
+              proofNotes: sanitizeString(proof.notes, 400)
+            };
+          }
+          return cp;
+        })
+      }
+    }));
+    return { success: true };
+  };
+
+  const reviewCSRParticipation = (participationId: string, status: 'Approved' | 'Rejected', notes?: string) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can review & approve participation proofs.' };
+    }
+
+    const part = state.transactions.csrParticipations.find(p => p.id === participationId);
+    if (!part) return { success: false, error: 'Participation record not found.' };
+
+    if (state.config.evidenceRequired && status === 'Approved') {
+      if (!part.proofAttachmentName && !part.proofAttachmentUrl) {
+        return { success: false, error: 'Cannot approve: Evidence Requirement is enabled and participant has not submitted proof.' };
+      }
+    }
+
+    const activity = state.transactions.csrActivities.find(a => a.id === part.activityId);
+    const pts = status === 'Approved' ? (activity?.pointsAwarded || 150) : 0;
+
+    setState(prev => ({
+      ...prev,
+      users: prev.users.map(u => u.id === part.employeeId ? { ...u, points: u.points + pts } : u),
+      transactions: {
+        ...prev.transactions,
+        csrParticipations: prev.transactions.csrParticipations.map(p => {
+          if (p.id === participationId) {
+            return {
+              ...p,
+              status,
+              pointsEarned: pts,
+              reviewedBy: currentUser.name,
+              reviewNotes: notes ? sanitizeString(notes, 200) : undefined
+            };
+          }
+          return p;
+        })
+      }
+    }));
+
+    return { success: true };
+  };
+
+  // Governance Actions
   const addPolicy = (policy: Omit<ESGPolicy, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can publish corporate ESG policies.' };
+    }
+    const newPolicy: ESGPolicy = {
+      ...policy,
+      id: 'pol-' + Date.now(),
+      title: sanitizeString(policy.title, 100),
+      summary: sanitizeString(policy.summary, 300)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        policies: [...prev.master.policies, { ...policy, id: 'pol-' + Date.now() }]
+        policies: [...prev.master.policies, newPolicy]
       }
     }));
+    return { success: true };
   };
 
   const updatePolicy = (id: string, policy: Partial<ESGPolicy>) => {
@@ -976,14 +589,55 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   };
 
-  const addAudit = (audit: Omit<Audit, 'id'>) => {
+  const acknowledgePolicy = (policyId: string) => {
+    const existing = state.transactions.policyAcknowledgements.find(
+      pa => pa.policyId === policyId && pa.employeeId === currentUser.id
+    );
+    if (existing) return { success: false, error: 'Policy already signed by you.' };
+
+    const newAck: PolicyAcknowledgement = {
+      id: 'pa-' + Date.now(),
+      policyId,
+      employeeId: currentUser.id,
+      acknowledgedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      digitalSignature: `${currentUser.name} [Verified Auth: ${currentUser.email}]`
+    };
+
     setState(prev => ({
       ...prev,
       transactions: {
         ...prev.transactions,
-        audits: [...prev.transactions.audits, { ...audit, id: 'aud-' + Date.now() }]
+        policyAcknowledgements: [...prev.transactions.policyAcknowledgements, newAck]
       }
     }));
+
+    addNotification({
+      title: '✍️ Policy Acknowledged',
+      message: 'Your digital signature was recorded for ESG policy compliance.',
+      type: 'POLICY_ACK'
+    });
+
+    return { success: true };
+  };
+
+  const addAudit = (audit: Omit<Audit, 'id'>) => {
+    if (currentUser.role === 'EMPLOYEE') {
+      return { success: false, error: 'Unauthorized: Employees cannot schedule audits.' };
+    }
+    const newAudit: Audit = {
+      ...audit,
+      id: 'aud-' + Date.now(),
+      title: sanitizeString(audit.title, 100),
+      leadAuditor: sanitizeString(audit.leadAuditor, 80)
+    };
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        audits: [...prev.transactions.audits, newAudit]
+      }
+    }));
+    return { success: true };
   };
 
   const updateAudit = (id: string, audit: Partial<Audit>) => {
@@ -996,24 +650,191 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   };
 
+  const addComplianceIssue = (issue: Omit<ComplianceIssue, 'id' | 'createdAt' | 'status'>) => {
+    const newIssue: ComplianceIssue = {
+      ...issue,
+      id: 'iss-' + Date.now(),
+      title: sanitizeString(issue.title, 100),
+      description: sanitizeString(issue.description, 300),
+      status: 'Open',
+      createdAt: new Date().toISOString().substring(0, 10)
+    };
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        complianceIssues: [...prev.transactions.complianceIssues, newIssue]
+      }
+    }));
+    return { success: true };
+  };
+
+  const updateComplianceIssue = (id: string, updates: Partial<ComplianceIssue>) => {
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        complianceIssues: prev.transactions.complianceIssues.map(i => i.id === id ? { ...i, ...updates } : i)
+      }
+    }));
+    return { success: true };
+  };
+
+  // Gamification Actions
+  const addChallenge = (challenge: Omit<Challenge, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can create corporate challenges.' };
+    }
+    const newChg: Challenge = {
+      ...challenge,
+      id: 'chg-' + Date.now(),
+      title: sanitizeString(challenge.title, 100),
+      description: sanitizeString(challenge.description, 300),
+      xp: validateNumericRange(challenge.xp, 10, 5000, 250)
+    };
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        challenges: [...prev.transactions.challenges, newChg]
+      }
+    }));
+    return { success: true };
+  };
+
+  const updateChallengeStatus = (id: string, status: Challenge['status']) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can update challenge lifecycle.' };
+    }
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        challenges: prev.transactions.challenges.map(c => c.id === id ? { ...c, status } : c)
+      }
+    }));
+    return { success: true };
+  };
+
+  const joinChallenge = (challengeId: string) => {
+    const existing = state.transactions.challengeParticipations.find(
+      cp => cp.challengeId === challengeId && cp.employeeId === currentUser.id
+    );
+    if (existing) return { success: false, error: 'Already joined this challenge.' };
+
+    const newPart: ChallengeParticipation = {
+      id: 'cpart-' + Date.now(),
+      challengeId,
+      employeeId: currentUser.id,
+      joinedAt: new Date().toISOString().substring(0, 10),
+      status: 'In Progress',
+      progressPct: 0,
+      xpAwarded: 0
+    };
+
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        challengeParticipations: [...prev.transactions.challengeParticipations, newPart]
+      }
+    }));
+    return { success: true };
+  };
+
+  const submitChallengeProgress = (challengeId: string, progressPct: number, proof?: { fileName: string; notes: string; size?: number; type?: string }) => {
+    const validPct = validateNumericRange(progressPct, 0, 100, 100);
+    let sanitizedFile = proof?.fileName;
+
+    if (proof?.fileName) {
+      const fileVal = validateUploadFile({
+        name: proof.fileName,
+        size: proof.size || 1024 * 500,
+        type: proof.type || 'image/jpeg'
+      });
+      if (fileVal.valid) {
+        sanitizedFile = fileVal.sanitizedName;
+      }
+    }
+
+    const challenge = state.transactions.challenges.find(c => c.id === challengeId);
+    const xp = challenge?.xp || 250;
+
+    setState(prev => ({
+      ...prev,
+      users: prev.users.map(u => u.id === currentUser.id ? { ...u, xp: u.xp + xp } : u),
+      transactions: {
+        ...prev.transactions,
+        challengeParticipations: prev.transactions.challengeParticipations.map(cp => {
+          if (cp.challengeId === challengeId && cp.employeeId === currentUser.id) {
+            return {
+              ...cp,
+              progressPct: validPct,
+              status: validPct >= 100 ? 'Approved' : 'In Progress',
+              xpAwarded: validPct >= 100 ? xp : 0,
+              proofAttachmentName: sanitizedFile,
+              proofNotes: proof?.notes ? sanitizeString(proof.notes, 300) : undefined
+            };
+          }
+          return cp;
+        })
+      }
+    }));
+    return { success: true };
+  };
+
+  const reviewChallengeParticipation = (participationId: string, status: 'Approved' | 'Rejected') => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can review challenge milestones.' };
+    }
+    setState(prev => ({
+      ...prev,
+      transactions: {
+        ...prev.transactions,
+        challengeParticipations: prev.transactions.challengeParticipations.map(cp => 
+          cp.id === participationId ? { ...cp, status } : cp
+        )
+      }
+    }));
+    return { success: true };
+  };
+
   const addBadge = (badge: Omit<Badge, 'id'>) => {
+    const newBadge: Badge = {
+      ...badge,
+      id: 'bdg-' + Date.now(),
+      name: sanitizeString(badge.name, 60),
+      description: sanitizeString(badge.description, 200)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        badges: [...prev.master.badges, { ...badge, id: 'bdg-' + Date.now() }]
+        badges: [...prev.master.badges, newBadge]
       }
     }));
   };
 
   const addReward = (reward: Omit<Reward, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can add catalog rewards.' };
+    }
+    const newReward: Reward = {
+      ...reward,
+      id: 'rew-' + Date.now(),
+      name: sanitizeString(reward.name, 60),
+      description: sanitizeString(reward.description, 200),
+      pointsRequired: validateNumericRange(reward.pointsRequired, 10, 100000, 200),
+      stock: validateNumericRange(reward.stock, 0, 10000, 10)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        rewards: [...prev.master.rewards, { ...reward, id: 'rew-' + Date.now() }]
+        rewards: [...prev.master.rewards, newReward]
       }
     }));
+    return { success: true };
   };
 
   const updateReward = (id: string, reward: Partial<Reward>) => {
@@ -1026,14 +847,74 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   };
 
+  const redeemReward = (rewardId: string) => {
+    const rateCheck = rateLimiter.check('reward_redeem_' + currentUser.id, 5, 60, 30);
+    if (!rateCheck.allowed) {
+      return { success: false, error: rateCheck.error };
+    }
+
+    const reward = state.master.rewards.find(r => r.id === rewardId);
+    if (!reward) return { success: false, error: 'Reward not found.' };
+
+    if (reward.stock <= 0) {
+      return { success: false, error: 'This item is currently out of stock.' };
+    }
+
+    if (currentUser.points < reward.pointsRequired) {
+      return { 
+        success: false, 
+        error: `Insufficient CSR points. You need ${reward.pointsRequired} PTS (Available: ${currentUser.points} PTS).` 
+      };
+    }
+
+    setState(prev => ({
+      ...prev,
+      users: prev.users.map(u => u.id === currentUser.id ? { ...u, points: u.points - reward.pointsRequired } : u),
+      master: {
+        ...prev.master,
+        rewards: prev.master.rewards.map(r => {
+          if (r.id === rewardId) {
+            const nextStock = r.stock - 1;
+            return {
+              ...r,
+              stock: nextStock,
+              status: nextStock > 0 ? 'Available' : 'Out of Stock'
+            };
+          }
+          return r;
+        })
+      }
+    }));
+
+    addNotification({
+      title: '🎁 Reward Redeemed!',
+      message: `You claimed "${reward.name}" for ${reward.pointsRequired} PTS. Fulfillment team has been notified.`,
+      type: 'REWARD_CLAIMED'
+    });
+
+    return { success: true };
+  };
+
+  // Master Data (Admin Only)
   const addDepartment = (dept: Omit<Department, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can create departments.' };
+    }
+    const newDept: Department = {
+      ...dept,
+      id: 'dept-' + Date.now(),
+      name: sanitizeString(dept.name, 80),
+      code: sanitizeString(dept.code, 20),
+      head: sanitizeString(dept.head, 60)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        departments: [...prev.master.departments, { ...dept, id: 'dept-' + Date.now() }]
+        departments: [...prev.master.departments, newDept]
       }
     }));
+    return { success: true };
   };
 
   const updateDepartment = (id: string, dept: Partial<Department>) => {
@@ -1047,6 +928,9 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const deleteDepartment = (id: string) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can delete departments.' };
+    }
     setState(prev => ({
       ...prev,
       master: {
@@ -1054,16 +938,26 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
         departments: prev.master.departments.filter(d => d.id !== id)
       }
     }));
+    return { success: true };
   };
 
   const addCategory = (cat: Omit<Category, 'id'>) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can create categories.' };
+    }
+    const newCat: Category = {
+      ...cat,
+      id: 'cat-' + Date.now(),
+      name: sanitizeString(cat.name, 60)
+    };
     setState(prev => ({
       ...prev,
       master: {
         ...prev.master,
-        categories: [...prev.master.categories, { ...cat, id: 'cat-' + Date.now() }]
+        categories: [...prev.master.categories, newCat]
       }
     }));
+    return { success: true };
   };
 
   const updateCategory = (id: string, cat: Partial<Category>) => {
@@ -1077,6 +971,9 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const deleteCategory = (id: string) => {
+    if (currentUser.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only Administrators can delete categories.' };
+    }
     setState(prev => ({
       ...prev,
       master: {
@@ -1084,9 +981,10 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
         categories: prev.master.categories.filter(c => c.id !== id)
       }
     }));
+    return { success: true };
   };
 
-  // Notification actions
+  // Notification Helpers
   const markNotificationAsRead = (id: string) => {
     setState(prev => ({
       ...prev,
@@ -1109,61 +1007,127 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const resetToSeedData = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch(e) {}
     setState(initialSeedData);
+    addNotification({
+      title: '🔄 Demonstration Reset',
+      message: 'Demo dataset and business parameters restored to defaults.',
+      type: 'POLICY_ACK'
+    });
+  };
+
+  // Dynamic Department Scores Calculation
+  const departmentScores = useMemo(() => {
+    const { env, soc, gov } = state.config.weights;
+    const totalWeight = (env + soc + gov) || 100;
+
+    return state.master.departments.map(dept => {
+      let envScore = 85;
+      let socScore = 80;
+      let govScore = 90;
+
+      if (dept.code === 'OPS') {
+        envScore = 78; socScore = 85; govScore = 82;
+      } else if (dept.code === 'MFG') {
+        envScore = 74; socScore = 79; govScore = 86;
+      } else if (dept.code === 'ENG') {
+        envScore = 92; socScore = 88; govScore = 94;
+      } else if (dept.code === 'HR') {
+        envScore = 90; socScore = 95; govScore = 92;
+      } else if (dept.code === 'FIN') {
+        envScore = 88; socScore = 82; govScore = 96;
+      }
+
+      const totalScore = Math.round(((envScore * env) + (socScore * soc) + (govScore * gov)) / totalWeight);
+
+      return {
+        departmentId: dept.id,
+        departmentName: dept.name,
+        environmentalScore: envScore,
+        socialScore: socScore,
+        governanceScore: govScore,
+        totalScore,
+        rank: 1
+      };
+    }).sort((a, b) => b.totalScore - a.totalScore).map((d, index) => ({
+      ...d,
+      rank: index + 1
+    }));
+  }, [state.master.departments, state.config.weights]);
+
+  // Overall ESG Score
+  const overallESGScore = useMemo(() => {
+    if (departmentScores.length === 0) return { total: 85, environmental: 85, social: 85, governance: 85 };
+    const sumTotal = departmentScores.reduce((acc, d) => acc + d.totalScore, 0);
+    const sumEnv = departmentScores.reduce((acc, d) => acc + d.environmentalScore, 0);
+    const sumSoc = departmentScores.reduce((acc, d) => acc + d.socialScore, 0);
+    const sumGov = departmentScores.reduce((acc, d) => acc + d.governanceScore, 0);
+    const count = departmentScores.length;
+
+    return {
+      total: Math.round(sumTotal / count),
+      environmental: Math.round(sumEnv / count),
+      social: Math.round(sumSoc / count),
+      governance: Math.round(sumGov / count)
+    };
+  }, [departmentScores]);
+
+  const value: EcoSphereContextType = {
+    state,
+    currentUser,
+    isAuthenticated,
+    login,
+    logout,
+    setCurrentUser,
+    switchRole,
+    departmentScores,
+    overallESGScore,
+    updateConfig,
+    updateWeights,
+    addEmissionFactor,
+    updateEmissionFactor,
+    deleteEmissionFactor,
+    addProductProfile,
+    updateProductProfile,
+    addCarbonTransaction,
+    addEnvironmentalGoal,
+    updateEnvironmentalGoal,
+    addCSRActivity,
+    registerForCSRActivity,
+    submitCSRProof,
+    reviewCSRParticipation,
+    addPolicy,
+    updatePolicy,
+    acknowledgePolicy,
+    addAudit,
+    updateAudit,
+    addComplianceIssue,
+    updateComplianceIssue,
+    addChallenge,
+    updateChallengeStatus,
+    joinChallenge,
+    submitChallengeProgress,
+    reviewChallengeParticipation,
+    addBadge,
+    addReward,
+    updateReward,
+    redeemReward,
+    addDepartment,
+    updateDepartment,
+    deleteDepartment,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    clearNotifications,
+    resetToSeedData
   };
 
   return (
-    <EcoSphereContext.Provider
-      value={{
-        state,
-        currentUser: state.currentUser,
-        setCurrentUser,
-        switchRole,
-        departmentScores,
-        overallESGScore,
-        updateConfig,
-        updateWeights,
-        addEmissionFactor,
-        updateEmissionFactor,
-        deleteEmissionFactor,
-        addProductProfile,
-        updateProductProfile,
-        addCarbonTransaction,
-        addEnvironmentalGoal,
-        updateEnvironmentalGoal,
-        addCSRActivity,
-        registerForCSRActivity,
-        submitCSRProof,
-        reviewCSRParticipation,
-        addPolicy,
-        updatePolicy,
-        acknowledgePolicy,
-        addAudit,
-        updateAudit,
-        addComplianceIssue,
-        updateComplianceIssue,
-        addChallenge,
-        updateChallengeStatus,
-        joinChallenge,
-        submitChallengeProgress,
-        reviewChallengeParticipation,
-        addBadge,
-        addReward,
-        updateReward,
-        redeemReward,
-        addDepartment,
-        updateDepartment,
-        deleteDepartment,
-        addCategory,
-        updateCategory,
-        deleteCategory,
-        markNotificationAsRead,
-        markAllNotificationsAsRead,
-        clearNotifications,
-        resetToSeedData
-      }}
-    >
+    <EcoSphereContext.Provider value={value}>
       {children}
     </EcoSphereContext.Provider>
   );

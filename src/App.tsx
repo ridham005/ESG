@@ -3,6 +3,7 @@ import { EcoSphereProvider } from './context/EcoSphereContext';
 import { Header } from './components/Header';
 import { NotificationDrawer } from './components/NotificationDrawer';
 import { ERPSimulatorModal } from './components/Common/ERPSimulatorModal';
+import { LoginModal } from './components/Auth/LoginModal';
 import { OverviewDashboard } from './components/Dashboard/OverviewDashboard';
 import { EnvironmentalModule } from './components/Environmental/EnvironmentalModule';
 import { SocialModule } from './components/Social/SocialModule';
@@ -10,12 +11,13 @@ import { GovernanceModule } from './components/Governance/GovernanceModule';
 import { GamificationModule } from './components/Gamification/GamificationModule';
 import { ReportsModule } from './components/Reports/ReportsModule';
 import { SettingsModule } from './components/Settings/SettingsModule';
-import { Globe } from 'lucide-react';
+import { Globe, ShieldCheck } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isERPSimulatorOpen, setIsERPSimulatorOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--cb-canvas)' }}>
@@ -25,6 +27,7 @@ export const AppContent: React.FC = () => {
         setActiveTab={setActiveTab}
         openNotificationDrawer={() => setIsNotificationOpen(true)}
         openERPSimulator={() => setIsERPSimulatorOpen(true)}
+        openLoginModal={() => setIsLoginModalOpen(true)}
       />
 
       {/* Main Views */}
@@ -87,8 +90,9 @@ export const AppContent: React.FC = () => {
           </div>
 
           <div className="cb-footer-bottom">
-            <div>
-              © 2026 EcoSphere Inc. Adheres to Coinbase Design System (#0052ff, pill CTAs, 24px cards).
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ShieldCheck size={14} color="var(--cb-primary)" />
+              <span>© 2026 EcoSphere Inc. Enterprise Security & Rate Limiting Protected.</span>
             </div>
             <div className="cb-mono" style={{ fontSize: '11px' }}>
               GHG PROTOCOL • ISO 14001 • SBTi ALIGNED
@@ -107,6 +111,12 @@ export const AppContent: React.FC = () => {
       <ERPSimulatorModal
         isOpen={isERPSimulatorOpen}
         onClose={() => setIsERPSimulatorOpen(false)}
+      />
+
+      {/* Login / Auth Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
       />
     </div>
   );

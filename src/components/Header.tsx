@@ -15,7 +15,10 @@ import {
   FileText,
   Menu,
   X,
-  UserCheck
+  Lock,
+  LogOut,
+  LogIn,
+  KeyRound
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -23,15 +26,17 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   openNotificationDrawer: () => void;
   openERPSimulator: () => void;
+  openLoginModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   openNotificationDrawer,
-  openERPSimulator
+  openERPSimulator,
+  openLoginModal
 }) => {
-  const { currentUser, switchRole, state } = useEcoSphere();
+  const { currentUser, switchRole, state, isAuthenticated, logout } = useEcoSphere();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadNotifs = state.notifications.filter(n => !n.read).length;
 
@@ -122,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
             </nav>
           </div>
 
-          {/* Right Action Icons & Role Switcher */}
+          {/* Right Action Icons & Auth Controls */}
           <div className="cb-header-right">
             
             {/* Quick ERP button (Desktop) */}
@@ -164,8 +169,8 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* Desktop Role Selector */}
-            <div className="cb-user-role-badge cb-desktop-only">
+            {/* User Account / Role & Login Button */}
+            <div className="cb-user-role-badge">
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
@@ -176,35 +181,22 @@ export const Header: React.FC<HeaderProps> = ({
                   objectFit: 'cover'
                 }}
               />
-              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--cb-ink)' }}>
-                {currentUser.name.split(' ')[0]}
+              <span className="cb-desktop-only" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--cb-ink)' }}>
+                {currentUser.name.split(' ')[0]} ({currentUser.role})
               </span>
-              <select
-                value={currentUser.role}
-                onChange={(e) => switchRole(e.target.value as UserRole)}
-                className="cb-role-select"
+              
+              <button
+                onClick={openLoginModal}
+                className="cb-btn cb-btn-outline cb-btn-sm"
+                style={{ height: '24px', padding: '0 8px', fontSize: '10px', borderRadius: 'var(--cb-radius-pill)' }}
+                title="Switch Account / Authenticate Persona"
               >
-                <option value="ADMIN">Role: Admin</option>
-                <option value="AUDITOR">Role: Auditor</option>
-                <option value="EMPLOYEE">Role: Employee</option>
-              </select>
+                <KeyRound size={11} />
+                <span>Auth</span>
+              </button>
             </div>
 
-            {/* Mobile Persona Avatar / Role Trigger */}
-            <div className="cb-mobile-only" style={{ display: 'flex', alignItems: 'center' }}>
-              <select
-                value={currentUser.role}
-                onChange={(e) => switchRole(e.target.value as UserRole)}
-                className="cb-role-select"
-                style={{ fontSize: '10px', padding: '3px 4px', maxWidth: '75px' }}
-              >
-                <option value="ADMIN">Admin</option>
-                <option value="AUDITOR">Auditor</option>
-                <option value="EMPLOYEE">Employee</option>
-              </select>
-            </div>
-
-            {/* Mobile Hamburger Button */}
+            {/* Hamburger Button (Mobile) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="cb-icon-btn cb-mobile-only"
@@ -216,15 +208,15 @@ export const Header: React.FC<HeaderProps> = ({
 
         </div>
 
-        {/* Mobile Dropdown Menu with Full Role Switcher & ERP Action */}
+        {/* Mobile Dropdown Menu with Auth & Nav */}
         {mobileMenuOpen && (
           <div className="cb-mobile-menu">
-            {/* Active User Card in Mobile Menu */}
+            {/* Active Persona Card in Mobile Menu */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '10px 12px',
+              padding: '12px',
               backgroundColor: 'var(--cb-surface-soft)',
               borderRadius: 'var(--cb-radius-lg)',
               marginBottom: '10px'
@@ -245,21 +237,22 @@ export const Header: React.FC<HeaderProps> = ({
                     {currentUser.name}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--cb-muted)' }}>
-                    Active Persona • {currentUser.role}
+                    Role: <strong>{currentUser.role}</strong>
                   </div>
                 </div>
               </div>
 
-              <select
-                value={currentUser.role}
-                onChange={(e) => switchRole(e.target.value as UserRole)}
-                className="cb-role-select"
-                style={{ padding: '4px 8px', fontSize: '12px' }}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openLoginModal();
+                }}
+                className="cb-btn cb-btn-primary cb-btn-sm"
+                style={{ height: '28px', fontSize: '11px', padding: '0 10px' }}
               >
-                <option value="ADMIN">Admin (Director)</option>
-                <option value="AUDITOR">Auditor</option>
-                <option value="EMPLOYEE">Employee</option>
-              </select>
+                <KeyRound size={12} />
+                <span>Switch</span>
+              </button>
             </div>
 
             {/* Nav Links */}
@@ -301,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({
                   style={{ width: '100%' }}
                 >
                   <PlusCircle size={15} />
-                  <span>Record ERP Carbon Transaction</span>
+                  <span>Record ERP Carbon</span>
                 </button>
               </div>
             </div>
