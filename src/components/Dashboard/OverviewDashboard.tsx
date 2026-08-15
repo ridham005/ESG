@@ -8,7 +8,9 @@ import {
   Award, 
   ArrowRight, 
   Zap,
-  Leaf
+  Leaf,
+  Calculator,
+  Sliders
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -18,6 +20,7 @@ interface DashboardProps {
 
 export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openERPSimulator }) => {
   const { state, overallESGScore, departmentScores } = useEcoSphere();
+  
   const rawTotalW = (state.config.weights.env + state.config.weights.soc + state.config.weights.gov) || 100;
   const normEnv = Math.round((state.config.weights.env / rawTotalW) * 100);
   const normSoc = Math.round((state.config.weights.soc / rawTotalW) * 100);
@@ -111,62 +114,89 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                 <span style={{ fontSize: '20px', color: 'var(--cb-on-dark-soft)' }}>/ 100</span>
               </div>
 
-              {/* 3 Pillar Progress Tracks */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+              {/* 3 Pillar Progress Tracks with Explicit Labels */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+                
+                {/* Environmental */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '5px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Leaf size={13} color="var(--cb-semantic-up)" />
-                      <span>Environmental ({normEnv}%)</span>
+                      <Leaf size={14} color="var(--cb-semantic-up)" />
+                      <strong>Environmental</strong>
+                      <span className="cb-mono" style={{ color: 'var(--cb-on-dark-soft)', fontSize: '11px' }}>
+                        (Weight: {normEnv}%)
+                      </span>
                     </span>
-                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.environmental}/100</span>
+                    <span className="cb-mono" style={{ fontWeight: 700, color: '#ffffff', fontSize: '13px' }}>
+                      {overallESGScore.environmental} / 100
+                    </span>
                   </div>
                   <div className="cb-progress-track" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                     <div className="cb-progress-fill" style={{ width: overallESGScore.environmental + '%', backgroundColor: 'var(--cb-semantic-up)' }} />
                   </div>
                 </div>
 
+                {/* Social */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '5px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Users size={13} color="var(--cb-primary)" />
-                      <span>Social ({normSoc}%)</span>
+                      <Users size={14} color="var(--cb-primary)" />
+                      <strong>Social</strong>
+                      <span className="cb-mono" style={{ color: 'var(--cb-on-dark-soft)', fontSize: '11px' }}>
+                        (Weight: {normSoc}%)
+                      </span>
                     </span>
-                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.social}/100</span>
+                    <span className="cb-mono" style={{ fontWeight: 700, color: '#ffffff', fontSize: '13px' }}>
+                      {overallESGScore.social} / 100
+                    </span>
                   </div>
                   <div className="cb-progress-track" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                     <div className="cb-progress-fill" style={{ width: overallESGScore.social + '%', backgroundColor: 'var(--cb-primary)' }} />
                   </div>
                 </div>
 
+                {/* Governance */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '5px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <ShieldCheck size={13} color="#f59e0b" />
-                      <span>Governance ({normGov}%)</span>
+                      <ShieldCheck size={14} color="#f59e0b" />
+                      <strong>Governance</strong>
+                      <span className="cb-mono" style={{ color: 'var(--cb-on-dark-soft)', fontSize: '11px' }}>
+                        (Weight: {normGov}%)
+                      </span>
                     </span>
-                    <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.governance}/100</span>
+                    <span className="cb-mono" style={{ fontWeight: 700, color: '#ffffff', fontSize: '13px' }}>
+                      {overallESGScore.governance} / 100
+                    </span>
                   </div>
                   <div className="cb-progress-track" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                     <div className="cb-progress-fill" style={{ width: overallESGScore.governance + '%', backgroundColor: '#f59e0b' }} />
                   </div>
                 </div>
+
               </div>
 
+              {/* Exact Formula Breakdown */}
               <div style={{
-                paddingTop: '14px',
+                paddingTop: '12px',
                 borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 fontSize: '11px',
-                color: 'var(--cb-on-dark-soft)'
+                color: 'var(--cb-on-dark-soft)',
+                flexWrap: 'wrap',
+                gap: '6px'
               }}>
-                <span>Weighting Formula:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Calculator size={12} color="var(--cb-primary)" />
+                  <span>Weighted Calculation:</span>
+                </div>
                 <span className="cb-mono" style={{ color: '#ffffff', fontWeight: 600 }}>
-                  {normEnv}% E + {normSoc}% S + {normGov}% G
+                  ({overallESGScore.environmental} × {normEnv}%) + ({overallESGScore.social} × {normSoc}%) + ({overallESGScore.governance} × {normGov}%) = {overallESGScore.total}
                 </span>
               </div>
+
             </div>
           </div>
         </div>
@@ -265,6 +295,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                 onClick={() => onNavigate('settings')}
                 className="cb-btn cb-btn-outline cb-btn-sm"
               >
+                <Sliders size={13} />
                 <span>Adjust Weights</span>
               </button>
             </div>

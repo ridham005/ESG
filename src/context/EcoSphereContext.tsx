@@ -1070,22 +1070,29 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     }));
   }, [state.master.departments, state.config.weights]);
 
-  // Overall ESG Score
+  // Overall ESG Score strictly computed from pillar averages and normalized weights
   const overallESGScore = useMemo(() => {
     if (departmentScores.length === 0) return { total: 85, environmental: 85, social: 85, governance: 85 };
-    const sumTotal = departmentScores.reduce((acc, d) => acc + d.totalScore, 0);
     const sumEnv = departmentScores.reduce((acc, d) => acc + d.environmentalScore, 0);
     const sumSoc = departmentScores.reduce((acc, d) => acc + d.socialScore, 0);
     const sumGov = departmentScores.reduce((acc, d) => acc + d.governanceScore, 0);
     const count = departmentScores.length;
 
+    const envAvg = Math.round(sumEnv / count);
+    const socAvg = Math.round(sumSoc / count);
+    const govAvg = Math.round(sumGov / count);
+
+    const { env, soc, gov } = state.config.weights;
+    const totalW = (env + soc + gov) || 100;
+    const computedTotal = Math.round(((envAvg * env) + (socAvg * soc) + (govAvg * gov)) / totalW);
+
     return {
-      total: Math.round(sumTotal / count),
-      environmental: Math.round(sumEnv / count),
-      social: Math.round(sumSoc / count),
-      governance: Math.round(sumGov / count)
+      total: computedTotal,
+      environmental: envAvg,
+      social: socAvg,
+      governance: govAvg
     };
-  }, [departmentScores]);
+  }, [departmentScores, state.config.weights]);
 
   const value: EcoSphereContextType = {
     state,
