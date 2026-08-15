@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEcoSphere } from '../../context/EcoSphereContext';
 import { 
+  Sliders, 
   ToggleLeft, 
   ToggleRight, 
-  RotateCcw, 
+  Building2, 
+  FolderTree, 
   Plus, 
   Trash2, 
+  RotateCcw, 
   Check, 
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  Scale
 } from 'lucide-react';
 
 export const SettingsModule: React.FC = () => {
@@ -16,37 +21,118 @@ export const SettingsModule: React.FC = () => {
     updateConfig, 
     updateWeights, 
     addDepartment, 
-    deleteDepartment, 
-    addCategory, 
-    deleteCategory, 
-    resetToSeedData 
+    deleteDepartment,
+    addCategory,
+    deleteCategory,
+    resetToSeedData
   } = useEcoSphere();
 
   const [envWeight, setEnvWeight] = useState(state.config.weights.env);
   const [socWeight, setSocWeight] = useState(state.config.weights.soc);
   const [govWeight, setGovWeight] = useState(state.config.weights.gov);
-  const [weightsSaved, setWeightsSaved] = useState(false);
+  const [autoBalance, setAutoBalance] = useState(true);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // New Dept Form
+  useEffect(() => {
+    setEnvWeight(state.config.weights.env);
+    setSocWeight(state.config.weights.soc);
+    setGovWeight(state.config.weights.gov);
+  }, [state.config.weights]);
+
+  // Modal States
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+
+  // Form states
   const [deptName, setDeptName] = useState('');
   const [deptCode, setDeptCode] = useState('');
   const [deptHead, setDeptHead] = useState('');
-  const [deptCount, setDeptCount] = useState(50);
+  const [deptCount, setDeptCount] = useState(100);
 
-  // New Category Form
-  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [catName, setCatName] = useState('');
   const [catType, setCatType] = useState<'CSR Activity' | 'Challenge' | 'Emission Factor'>('CSR Activity');
 
+  const weightSum = envWeight + socWeight + govWeight;
+
+  const handleEnvChange = (val: number) => {
+    if (autoBalance) {
+      const remaining = 100 - val;
+      const currentOther = (socWeight + govWeight) || 1;
+      const newSoc = Math.round((socWeight / currentOther) * remaining);
+      const newGov = remaining - newSoc;
+      setEnvWeight(val);
+      setSocWeight(newSoc);
+      setGovWeight(newGov);
+    } else {
+      setEnvWeight(val);
+    }
+  };
+
+  const handleSocChange = (val: number) => {
+    if (autoBalance) {
+      const remaining = 100 - val;
+      const currentOther = (envWeight + govWeight) || 1;
+      const newEnv = Math.round((envWeight / currentOther) * remaining);
+      const newGov = remaining - newEnv;
+      setSocWeight(val);
+      setEnvWeight(newEnv);
+      setGovWeight(newGov);
+    } else {
+      setSocWeight(val);
+    }
+  };
+
+  const handleGovChange = (val: number) => {
+    if (autoBalance) {
+      const remaining = 100 - val;
+      const currentOther = (envWeight + socWeight) || 1;
+      const newEnv = Math.round((envWeight / currentOther) * remaining);
+      const newSoc = remaining - newEnv;
+      setGovWeight(val);
+      setEnvWeight(newEnv);
+      setSocWeight(newSoc);
+    } else {
+      setGovWeight(val);
+    }
+  };
+
+  const normalizeTo100 = () => {
+    const total = (envWeight + socWeight + govWeight) || 100;
+    const nEnv = Math.round((envWeight / total) * 100);
+    const nSoc = Math.round((socWeight / total) * 100);
+    const nGov = 100 - nEnv - nSoc;
+    setEnvWeight(nEnv);
+    setSocWeight(nSoc);
+    setGovWeight(nGov);
+  };
+
+  const applyPreset = (e: number, s: number, g: number) => {
+    setEnvWeight(e);
+    setSocWeight(s);
+    setGovWeight(g);
+    updateWeights({ env: e, soc: s, gov: g });
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
   const handleSaveWeights = () => {
-    updateWeights({
-      env: envWeight,
-      soc: socWeight,
-      gov: govWeight
-    });
-    setWeightsSaved(true);
-    setTimeout(() => setWeightsSaved(false), 2000);
+    let finalEnv = envWeight;
+    let finalSoc = socWeight;
+    let finalGov = govWeight;
+
+    if (weightSum !== 100) {
+      const total = weightSum || 100;
+      finalEnv = Math.round((envWeight / total) * 100);
+      finalSoc = Math.round((socWeight / total) * 100);
+      finalGov = 100 - finalEnv - finalSoc;
+      setEnvWeight(finalEnv);
+      setSocWeight(finalSoc);
+      setGovWeight(finalGov);
+    }
+
+    updateWeights({ env: finalEnv, soc: finalSoc, gov: finalGov });
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 2500);
   };
 
   const handleCreateDept = (e: React.FormEvent) => {
@@ -74,14 +160,12 @@ export const SettingsModule: React.FC = () => {
     setCatName('');
   };
 
-  const weightSum = envWeight + socWeight + govWeight;
-
   return (
-    <div style={{ padding: '32px 0 60px' }}>
+    <div style={{ padding: '24px 0 60px' }}>
       <div className="cb-container">
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'gap', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <span className="cb-badge cb-badge-primary">MODULE 06</span>
@@ -101,16 +185,16 @@ export const SettingsModule: React.FC = () => {
           </button>
         </div>
 
-        <div className="cb-grid-2" style={{ marginBottom: '32px' }}>
+        <div className="cb-grid-2" style={{ marginBottom: '28px' }}>
           
-          {/* 1. Core Business Rules Configuration (Section 8 of PDF) */}
+          {/* 1. Core Business Rules Configuration */}
           <div className="cb-card">
             <h3 className="cb-title-md" style={{ marginBottom: '6px' }}>Core Business Logic Rules</h3>
             <p className="cb-body-sm" style={{ marginBottom: '20px' }}>
               Enforce system-wide calculation automation, evidence guardrails, and instant unlocks
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {/* Toggle 1: Auto Emission Calc */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px', backgroundColor: 'var(--cb-surface-soft)', borderRadius: 'var(--cb-radius-lg)' }}>
                 <div>
@@ -167,84 +251,144 @@ export const SettingsModule: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Configurable ESG Scoring Weights (Section 5/6 of PDF) */}
+          {/* 2. Configurable ESG Scoring Weights */}
           <div className="cb-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 className="cb-title-md">Configurable ESG Weightings</h3>
-              <span className={'cb-badge cb-mono ' + (weightSum === 100 ? 'cb-badge-up' : 'cb-badge-warning')}>
-                Sum: {weightSum}%
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Scale size={18} color="var(--cb-primary)" />
+                <h3 className="cb-title-md">Configurable ESG Weightings</h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => setAutoBalance(!autoBalance)}
+                  className="cb-btn cb-btn-outline cb-btn-sm"
+                  style={{ height: '26px', fontSize: '11px', padding: '0 8px' }}
+                  title="Auto-rebalance sliders to always total 100%"
+                >
+                  <RefreshCw size={11} />
+                  <span>{autoBalance ? 'Auto-Balance ON' : 'Manual'}</span>
+                </button>
+                <span className={'cb-badge cb-mono ' + (weightSum === 100 ? 'cb-badge-up' : 'cb-badge-warning')}>
+                  Sum: {weightSum}%
+                </span>
+              </div>
             </div>
-            <p className="cb-body-sm" style={{ marginBottom: '20px' }}>
-              Adjust organizational weighting coefficients for Environmental, Social, and Governance pillars (Default: 40/30/30)
+
+            <p className="cb-body-sm" style={{ marginBottom: '16px' }}>
+              Organizational weights must total <strong>100%</strong> to ensure synchronized composite scoring.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Presets */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <button
+                onClick={() => applyPreset(40, 30, 30)}
+                className="cb-btn cb-btn-secondary cb-btn-sm"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px' }}
+              >
+                Standard (40/30/30)
+              </button>
+              <button
+                onClick={() => applyPreset(60, 20, 20)}
+                className="cb-btn cb-btn-secondary cb-btn-sm"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px' }}
+              >
+                Climate Focus (60/20/20)
+              </button>
+              <button
+                onClick={() => applyPreset(25, 50, 25)}
+                className="cb-btn cb-btn-secondary cb-btn-sm"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px' }}
+              >
+                Social/DEI (25/50/25)
+              </button>
+              <button
+                onClick={() => applyPreset(25, 25, 50)}
+                className="cb-btn cb-btn-secondary cb-btn-sm"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px' }}
+              >
+                Governance (25/25/50)
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ fontWeight: 600, color: 'var(--cb-semantic-up)' }}>Environmental Weight</span>
                   <span className="cb-mono" style={{ fontWeight: 700 }}>{envWeight}%</span>
                 </div>
                 <input
                   type="range"
-                  min="10"
-                  max="80"
+                  min="5"
+                  max="90"
                   value={envWeight}
-                  onChange={e => setEnvWeight(Number(e.target.value))}
-                  style={{ width: '100%' }}
+                  onChange={e => handleEnvChange(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--cb-semantic-up)', cursor: 'pointer' }}
                 />
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ fontWeight: 600, color: 'var(--cb-primary)' }}>Social Weight</span>
                   <span className="cb-mono" style={{ fontWeight: 700 }}>{socWeight}%</span>
                 </div>
                 <input
                   type="range"
-                  min="10"
-                  max="80"
+                  min="5"
+                  max="90"
                   value={socWeight}
-                  onChange={e => setSocWeight(Number(e.target.value))}
-                  style={{ width: '100%' }}
+                  onChange={e => handleSocChange(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--cb-primary)', cursor: 'pointer' }}
                 />
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ fontWeight: 600, color: '#d97706' }}>Governance Weight</span>
                   <span className="cb-mono" style={{ fontWeight: 700 }}>{govWeight}%</span>
                 </div>
                 <input
                   type="range"
-                  min="10"
-                  max="80"
+                  min="5"
+                  max="90"
                   value={govWeight}
-                  onChange={e => setGovWeight(Number(e.target.value))}
-                  style={{ width: '100%' }}
+                  onChange={e => handleGovChange(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: '#d97706', cursor: 'pointer' }}
                 />
               </div>
 
-              <button
-                onClick={handleSaveWeights}
-                className="cb-btn cb-btn-primary"
-                style={{ marginTop: '8px' }}
-              >
-                {weightsSaved ? <Check size={16} /> : <Sparkles size={16} />}
-                <span>{weightsSaved ? 'Weights Applied Successfully!' : 'Save & Recompute Composite ESG Scores'}</span>
-              </button>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                {weightSum !== 100 && (
+                  <button
+                    onClick={normalizeTo100}
+                    className="cb-btn cb-btn-outline"
+                    style={{ flex: 1 }}
+                  >
+                    <span>Normalize to 100%</span>
+                  </button>
+                )}
+                
+                <button
+                  onClick={handleSaveWeights}
+                  className="cb-btn cb-btn-primary"
+                  style={{ flex: 2 }}
+                >
+                  {savedSuccess ? <Check size={16} /> : <Sparkles size={16} />}
+                  <span>{savedSuccess ? 'Weights Saved & Recomputed!' : 'Save & Recompute Composite ESG Scores'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 3. Master Data Management */}
+        {/* Master Data Configuration */}
         <div className="cb-grid-2">
+          
           {/* Departments Master */}
           <div className="cb-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
                 <h3 className="cb-title-md">Departments Master</h3>
-                <p className="cb-body-sm">Organizational hierarchy and ESG ownership</p>
+                <p className="cb-body-sm">Enterprise business units tracked in ESG ledger</p>
               </div>
               <button
                 onClick={() => setIsDeptModalOpen(true)}

@@ -18,6 +18,10 @@ interface DashboardProps {
 
 export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openERPSimulator }) => {
   const { state, overallESGScore, departmentScores } = useEcoSphere();
+  const rawTotalW = (normEnv + normSoc + normGov) || 100;
+  const normEnv = Math.round((normEnv / rawTotalW) * 100);
+  const normSoc = Math.round((normSoc / rawTotalW) * 100);
+  const normGov = 100 - normEnv - normSoc;
 
   const totalCarbonKg = state.transactions.carbonTransactions.reduce((acc, t) => acc + t.calculatedEmissions, 0);
   const totalCarbonTonnes = (totalCarbonKg / 1000).toFixed(1);
@@ -113,7 +117,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Leaf size={13} color="var(--cb-semantic-up)" />
-                      <span>Environmental ({state.config.weights.env}%)</span>
+                      <span>Environmental ({normEnv}%)</span>
                     </span>
                     <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.environmental}/100</span>
                   </div>
@@ -126,7 +130,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Users size={13} color="var(--cb-primary)" />
-                      <span>Social ({state.config.weights.soc}%)</span>
+                      <span>Social ({normSoc}%)</span>
                     </span>
                     <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.social}/100</span>
                   </div>
@@ -139,7 +143,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                     <span style={{ color: 'var(--cb-on-dark-body)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <ShieldCheck size={13} color="#f59e0b" />
-                      <span>Governance ({state.config.weights.gov}%)</span>
+                      <span>Governance ({normGov}%)</span>
                     </span>
                     <span className="cb-mono" style={{ fontWeight: 600, color: '#ffffff' }}>{overallESGScore.governance}/100</span>
                   </div>
@@ -160,7 +164,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ onNavigate, openER
               }}>
                 <span>Weighting Formula:</span>
                 <span className="cb-mono" style={{ color: '#ffffff', fontWeight: 600 }}>
-                  {state.config.weights.env}% E + {state.config.weights.soc}% S + {state.config.weights.gov}% G
+                  {normEnv}% E + {normSoc}% S + {normGov}% G
                 </span>
               </div>
             </div>
