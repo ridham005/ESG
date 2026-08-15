@@ -1,3 +1,4 @@
+import { peerSync } from '../services/peerSync';
 import { syncEngine } from '../utils/syncUtils';
 import { cloudSync, CloudSyncStatus } from '../services/cloudSync';
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
@@ -125,6 +126,7 @@ interface EcoSphereContextType {
   resetToSeedData: () => void;
   cloudSyncStatus: CloudSyncStatus;
   forceCloudSync: () => Promise<void>;
+  peerDeviceCount: number;
 }
 
 const STORAGE_KEY = 'ecosphere_esg_platform_state_v3';
@@ -180,6 +182,28 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     });
   }, []);
 
+  const [peerDeviceCount, setPeerDeviceCount] = useState(0);
+  const stateRef = React.useRef(state);
+  stateRef.current = state;
+
+  // Register PeerSync state provider
+  useEffect(() => {
+    peerSync.registerStateGetter(() => stateRef.current);
+    
+    const unsubState = peerSync.onRemoteState(remoteState => {
+      setState(remoteState);
+    });
+
+    const unsubCount = peerSync.onPeerCountChange(count => {
+      setPeerDeviceCount(count);
+    });
+
+    return () => {
+      unsubState();
+      unsubCount();
+    };
+  }, []);
+
   // Subscribe to Cloud Sync status
   useEffect(() => {
     return cloudSync.onStatusChange(status => {
@@ -199,6 +223,7 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
         // Initialize cloud with current state
         cloudSync.pushState(state);
       syncEngine.broadcastState(state);
+      peerSync.broadcast(state);
       }
     }
 
@@ -1233,6 +1258,7 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
     clearNotifications,
     cloudSyncStatus,
     forceCloudSync,
+    peerDeviceCount,
     resetToSeedData
   };
 

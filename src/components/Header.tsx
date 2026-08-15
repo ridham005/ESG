@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   openLoginModal,
   openSyncModal
 }) => {
-  const { currentUser, switchRole, state, isAuthenticated, logout, cloudSyncStatus, forceCloudSync } = useEcoSphere();
+  const { currentUser, switchRole, state, isAuthenticated, logout, cloudSyncStatus, forceCloudSync, peerDeviceCount } = useEcoSphere();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadNotifs = state.notifications.filter(n => !n.read).length;
 
@@ -151,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Cloud size={13} color={cloudSyncStatus === 'CONNECTED' ? 'var(--cb-semantic-up)' : 'var(--cb-primary)'} />
               <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--cb-ink)' }}>
-                📱 Sync Devices
+                {peerDeviceCount > 0 ? `📱 ${peerDeviceCount + 1} Devices Synced 🟢` : '📱 Sync Devices'}
               </span>
             </button>
 
