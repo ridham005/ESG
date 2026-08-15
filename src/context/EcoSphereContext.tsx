@@ -1,3 +1,4 @@
+import { syncEngine } from '../utils/syncUtils';
 import { cloudSync, CloudSyncStatus } from '../services/cloudSync';
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import {
@@ -143,6 +144,14 @@ const EcoSphereContext = createContext<EcoSphereContextType | undefined>(undefin
 
 export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<EcoSphereState>(() => {
+    // 1. Check if opened with a Multi-Device Sync Share Link
+    const urlSharedState = syncEngine.parseUrlHashState();
+    if (urlSharedState && urlSharedState.transactions && urlSharedState.master) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(urlSharedState));
+        return urlSharedState;
+      } catch(e) {}
+    }
     try {
       localStorage.removeItem('ecosphere_esg_platform_state_v1');
       localStorage.removeItem('ecosphere_esg_platform_state_v2');
@@ -164,6 +173,13 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudSyncStatus>('CONNECTED');
   const isLocalMutationRef = React.useRef(false);
 
+  // Multi-Tab & Multi-Window Real-time Broadcast Listener
+  useEffect(() => {
+    return syncEngine.onBroadcast(remoteState => {
+      setState(remoteState);
+    });
+  }, []);
+
   // Subscribe to Cloud Sync status
   useEffect(() => {
     return cloudSync.onStatusChange(status => {
@@ -182,6 +198,7 @@ export const EcoSphereProvider: React.FC<{ children: ReactNode }> = ({ children 
       } else if (isMounted && !res.state) {
         // Initialize cloud with current state
         cloudSync.pushState(state);
+      syncEngine.broadcastState(state);
       }
     }
 

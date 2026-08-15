@@ -3,6 +3,8 @@ import { useEcoSphere } from '../context/EcoSphereContext';
 import { UserRole } from '../types/esg';
 import { 
   Globe, 
+  Smartphone, 
+  Share2, 
   Cloud, 
   RefreshCw, 
   Bell, 
@@ -29,6 +31,7 @@ interface HeaderProps {
   openNotificationDrawer: () => void;
   openERPSimulator: () => void;
   openLoginModal: () => void;
+  openSyncModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,7 +39,8 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   openNotificationDrawer,
   openERPSimulator,
-  openLoginModal
+  openLoginModal,
+  openSyncModal
 }) => {
   const { currentUser, switchRole, state, isAuthenticated, logout, cloudSyncStatus, forceCloudSync } = useEcoSphere();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -134,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
             
             {/* Cloud Sync Status Indicator */}
             <button
-              onClick={forceCloudSync}
+              onClick={openSyncModal}
               className="cb-btn cb-btn-outline cb-btn-sm cb-desktop-only"
               style={{
                 fontSize: '11px',
@@ -147,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Cloud size={13} color={cloudSyncStatus === 'CONNECTED' ? 'var(--cb-semantic-up)' : 'var(--cb-primary)'} />
               <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--cb-ink)' }}>
-                {cloudSyncStatus === 'CONNECTED' ? 'Cloud Live 🟢' : cloudSyncStatus === 'SYNCING' ? 'Syncing...' : 'Local 🟡'}
+                📱 Sync Devices
               </span>
             </button>
 
@@ -249,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <button
-                onClick={forceCloudSync}
+                onClick={() => { setMobileMenuOpen(false); openSyncModal(); }}
                 className="cb-btn cb-btn-outline cb-btn-sm"
                 style={{ height: '24px', fontSize: '10px', padding: '0 8px' }}
               >

@@ -1,3 +1,4 @@
+import { SyncModal } from './components/Common/SyncModal';
 import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { EcoSphereProvider } from './context/EcoSphereContext';
 import { Header } from './components/Header';
@@ -120,6 +121,7 @@ export const AppContent: React.FC = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isERPSimulatorOpen, setIsERPSimulatorOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--cb-canvas)' }}>
@@ -130,6 +132,7 @@ export const AppContent: React.FC = () => {
         openNotificationDrawer={() => setIsNotificationOpen(true)}
         openERPSimulator={() => setIsERPSimulatorOpen(true)}
         openLoginModal={() => setIsLoginModalOpen(true)}
+        openSyncModal={() => setIsSyncModalOpen(true)}
       />
 
       {/* Main Views */}
@@ -213,6 +216,12 @@ export const AppContent: React.FC = () => {
       <ERPSimulatorModal
         isOpen={isERPSimulatorOpen}
         onClose={() => setIsERPSimulatorOpen(false)}
+      />
+
+      {/* Multi-Device Sync Modal */}
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
       />
 
       {/* Login / Auth Modal */}
