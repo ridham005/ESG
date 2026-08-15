@@ -488,7 +488,7 @@ export const ReportsModule: React.FC = () => {
                       <td style={{ fontWeight: 600 }}>Zero-Emission Commuter Sprint</td>
                       <td><span className="cb-badge cb-badge-neutral">Gamification</span></td>
                       <td>Technology & Engineering</td>
-                      <td>Maya Patel</td>
+                      <td>Samantha Hayes</td>
                       <td className="cb-mono" style={{ fontWeight: 700, color: 'var(--cb-primary)' }}>+250 XP Awarded</td>
                       <td><span className="cb-badge cb-badge-up">Completed</span></td>
                     </tr>

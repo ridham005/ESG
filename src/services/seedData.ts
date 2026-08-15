@@ -34,7 +34,7 @@ export const initialSeedData: EcoSphereState = {
     },
     {
       id: 'usr-3',
-      name: 'Maya Patel',
+      name: 'Samantha Hayes',
       email: 'maya.patel@ecosphere.corp',
       role: 'EMPLOYEE',
       departmentId: 'dept-2',
@@ -81,7 +81,7 @@ export const initialSeedData: EcoSphereState = {
   master: {
     departments: [
       { id: 'dept-1', name: 'Operations & Logistics', code: 'OPS', head: 'Carlos Mendoza', employeeCount: 142, status: 'Active' },
-      { id: 'dept-2', name: 'Technology & Engineering', code: 'ENG', head: 'Maya Patel', employeeCount: 215, status: 'Active' },
+      { id: 'dept-2', name: 'Technology & Engineering', code: 'ENG', head: 'Samantha Hayes', employeeCount: 215, status: 'Active' },
       { id: 'dept-3', name: 'Facilities & Real Estate', code: 'FAC', head: 'Sarah Chen', employeeCount: 68, status: 'Active' },
       { id: 'dept-4', name: 'Human Resources & Culture', code: 'HRC', head: 'Amara Okafor', employeeCount: 45, status: 'Active' },
       { id: 'dept-5', name: 'Legal, Risk & Compliance', code: 'LRC', head: 'Marcus Sterling', employeeCount: 38, status: 'Active' }
@@ -213,9 +213,9 @@ export const initialSeedData: EcoSphereState = {
       { id: 'pa-1', policyId: 'pol-1', employeeId: 'usr-1', acknowledgedAt: '2026-01-16 09:30', digitalSignature: 'Elena Vance [Verified Auth]' },
       { id: 'pa-2', policyId: 'pol-2', employeeId: 'usr-1', acknowledgedAt: '2026-01-16 09:32', digitalSignature: 'Elena Vance [Verified Auth]' },
       { id: 'pa-3', policyId: 'pol-3', employeeId: 'usr-1', acknowledgedAt: '2026-02-02 11:15', digitalSignature: 'Elena Vance [Verified Auth]' },
-      { id: 'pa-4', policyId: 'pol-1', employeeId: 'usr-3', acknowledgedAt: '2026-01-20 14:00', digitalSignature: 'Maya Patel [Verified Auth]' },
-      { id: 'pa-5', policyId: 'pol-2', employeeId: 'usr-3', acknowledgedAt: '2026-01-20 14:05', digitalSignature: 'Maya Patel [Verified Auth]' },
-      { id: 'pa-6', policyId: 'pol-3', employeeId: 'usr-3', acknowledgedAt: '2026-02-05 10:20', digitalSignature: 'Maya Patel [Verified Auth]' }
+      { id: 'pa-4', policyId: 'pol-1', employeeId: 'usr-3', acknowledgedAt: '2026-01-20 14:00', digitalSignature: 'Samantha Hayes [Verified Auth]' },
+      { id: 'pa-5', policyId: 'pol-2', employeeId: 'usr-3', acknowledgedAt: '2026-01-20 14:05', digitalSignature: 'Samantha Hayes [Verified Auth]' },
+      { id: 'pa-6', policyId: 'pol-3', employeeId: 'usr-3', acknowledgedAt: '2026-02-05 10:20', digitalSignature: 'Samantha Hayes [Verified Auth]' }
     ],
     audits: [
       { id: 'aud-1', title: 'Q2 ISO 14001 Environmental Management Audit', auditType: 'Internal', leadAuditor: 'Marcus Sterling', departmentId: 'dept-1', scheduledDate: '2026-06-15', completedDate: '2026-06-20', findingsCount: 3, status: 'Completed' },
@@ -277,7 +277,7 @@ export const initialSeedData: EcoSphereState = {
     {
       id: 'notif-2',
       title: '🎉 Badge Unlocked: Community Hero',
-      message: 'Maya Patel unlocked the "Community Hero" badge for participating in 2 verified CSR initiatives.',
+      message: 'Samantha Hayes unlocked the "Community Hero" badge for participating in 2 verified CSR initiatives.',
       type: 'BADGE_UNLOCKED',
       createdAt: '2026-08-05 16:30',
       read: false
